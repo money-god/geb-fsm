@@ -1,6 +1,7 @@
 pragma solidity >=0.5.15;
 
-import "./ds/value/value.sol";
+import "./uni/UniswapV2Library.sol";
+import "./uni/UQ112x112.sol";
 
 contract LibNote {
     event LogNote(
@@ -31,34 +32,37 @@ contract LibNote {
     }
 }
 
-contract OSM is LibNote {
+contract USM is UniswapV2Library, LibNote {
+    using UQ112x112 for uint224;
+
     // --- Auth ---
     mapping (address => uint) public wards;
     function rely(address usr) external note auth { wards[usr] = 1; }
     function deny(address usr) external note auth { wards[usr] = 0; }
     modifier auth {
-        require(wards[msg.sender] == 1, "OSM/not-authorized");
+        require(wards[msg.sender] == 1, "USM/not-authorized");
         _;
     }
 
     // --- Stop ---
     uint256 public stopped;
-    modifier stoppable { require(stopped == 0, "OSM/is-stopped"); _; }
+    modifier stoppable { require(stopped == 0, "USM/is-stopped"); _; }
 
-    // --- Math ---
-    function add(uint64 x, uint64 y) internal pure returns (uint64 z) {
-        z = x + y;
-        require(z >= x);
-    }
-
-    address public src;
+    uint8   public   side;
     uint16  constant ONE_HOUR = uint16(3600);
-    uint16  public hop = ONE_HOUR;
-    uint64  public zzz;
+    uint16  public   hop = ONE_HOUR;
+    uint32  public   rho;
+    uint64  public   zzz;
+    uint256 public   last;
+
+    address public main;
+    address public ref;
+
+    IUniswapV2Pair public pair;
 
     struct Feed {
-        uint128 val;
-        uint128 has;
+        uint224 val;
+        uint256 has;
     }
 
     Feed cur;
@@ -66,9 +70,20 @@ contract OSM is LibNote {
 
     event LogValue(bytes32 val);
 
-    constructor (address src_) public {
+    constructor (address main_, address ref_, uint8 side_) public {
         wards[msg.sender] = 1;
-        src = src_;
+        // Create pair
+        side = side_;
+        (main, ref) = sortTokens(main_, ref_);
+        pair = IUniswapV2Pair(pairFor(main, ref));
+        // Check pair
+        uint112 mainReserve;
+        uint112 refReserve;
+        (mainReserve, refReserve, rho) = pair.getReserves();
+        require(mainReserve != 0 && refReserve != 0, "USM/no-liquidity");
+        require(rho != 0);
+        // Store accumulator value
+        last = (side == 0) ? pair.price0CumulativeLast() : pair.price1CumulativeLast();
     }
 
     function stop() external note auth {
@@ -78,21 +93,17 @@ contract OSM is LibNote {
         stopped = 0;
     }
 
-    function change(address src_) external note auth {
-        src = src_;
-    }
-
     function era() internal view returns (uint) {
         return block.timestamp;
     }
 
     function prev(uint ts) internal view returns (uint64) {
-        require(hop != 0, "OSM/hop-is-zero");
-        return uint64(ts - (ts % hop));
+        require(hop != 0, "USM/hop-is-zero");
+        return uint32(ts - (ts % hop));
     }
 
     function step(uint16 ts) external auth {
-        require(ts > 0, "OSM/ts-is-zero");
+        require(ts > 0, "USM/ts-is-zero");
         hop = ts;
     }
 
@@ -106,14 +117,24 @@ contract OSM is LibNote {
     }
 
     function poke() external note stoppable {
-        require(pass(), "OSM/not-passed");
-        (bytes32 wut, bool ok) = DSValue(src).peek();
-        if (ok) {
-            cur = nxt;
-            nxt = Feed(uint128(uint(wut)), 1);
-            zzz = prev(era());
-            emit LogValue(bytes32(uint(cur.val)));
+        require(pass(), "USM/not-passed");
+        uint32 late = uint32(era() % 2**32);
+        uint32 gap = late - rho; // overflow is desired
+
+        uint acc = (side == 0) ? pair.price0CumulativeLast() : pair.price1CumulativeLast();
+        (uint112 reserve0, uint112 reserve1, uint32 pairTime) = pair.getReserves();
+
+        require(reserve0 != 0 && reserve1 != 0, "USM/no-pair-liquidity");
+        if (pairTime != late) {
+            acc += (side == 0) ? uint(UQ112x112.encode(reserve1).uqdiv(reserve0)) * gap : uint(UQ112x112.encode(reserve0).uqdiv(reserve1)) * gap;
         }
+
+        last = acc;
+        cur = nxt;
+        nxt = Feed(uint224((acc - last) / gap), 1);
+        rho = late;
+        zzz = prev(era());
+        emit LogValue(bytes32(uint(cur.val)));
     }
 
     function peek() external view returns (bytes32,bool) {
@@ -125,7 +146,7 @@ contract OSM is LibNote {
     }
 
     function read() external view returns (bytes32) {
-        require(cur.has == 1, "OSM/no-current-value");
+        require(cur.has == 1, "USM/no-current-value");
         return (bytes32(uint(cur.val)));
     }
 }
