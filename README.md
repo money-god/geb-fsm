@@ -1,6 +1,6 @@
 # Oracle Security Module
 
-This contract is given a `DSValue` as a source to read from. You set a time interval with `step`. Whenever that `updateDelay` time has passed, it will let you `updateResult`. When you `updateResult` it reads the value from the source and stores it. The previous stored value becomes the current value.
+This contract is given a `DSValue` as a source to read from. You set a time interval with `changeDelay`. Whenever that `updateDelay` time has passed, it will let you `updateResult`. When you `updateResult` it reads the value from the source and stores it. The previous stored value becomes the current value.
 
 This contracts implements `read` and `getResultWithValidity` from DSValue, but it is not one. It also has a new function `getNextResultWithValidity` to read what the next value will be after a `updateResult`.
 
