@@ -122,7 +122,7 @@ contract USM is UniswapV2Library, Logging {
         updateDelay = delay;
     }
 
-    function restartFeeds() external emitLog isAuthorized {
+    function restartValue() external emitLog isAuthorized {
         currentFeed = nextFeed = Feed(0, 0);
         stopped = 1;
     }

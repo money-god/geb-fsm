@@ -50,7 +50,7 @@ contract OSMTest is DSTest {
         (val, has) = osm.getNextResultWithValidity();           //pull next osm value
         assertEq(uint(val), 100 ether);                         //verify next osm value is 100
         assertTrue(has);                                        //verify next osm value is valid
-        osm.restartFeeds();                                     //void all osm values
+        osm.restartValue();                                     //void all osm values
         assertTrue(osm.stopped() == 1);                         //verify osm is inactive
         (val, has) = osm.getResultWithValidity();               //pull current osm value
         assertEq(uint(val), 0);                                 //verify current osm value is 0
