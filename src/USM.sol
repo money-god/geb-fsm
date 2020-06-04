@@ -72,7 +72,7 @@ contract USM is UniswapV2Library, Logging {
 
     address public   referenceToken;
 
-    IUniswapV2Pair private priceSource;
+    IUniswapV2Pair private _priceSource;
 
     struct Feed {
         uint224 value;
@@ -89,13 +89,13 @@ contract USM is UniswapV2Library, Logging {
         // Create pair
         referenceTokenPosition = referenceTokenPosition_;
         (address cToken, address rToken) = sortTokens(counterpartyToken_, referenceToken_);
-        priceSource = IUniswapV2Pair(pairFor(cToken, rToken));
+        _priceSource = IUniswapV2Pair(pairFor(cToken, rToken));
         // Check pair
-        (uint112 counterpartyReserve, uint112 referenceReserve, uint32 pairTime) = priceSource.getReserves();
+        (uint112 counterpartyReserve, uint112 referenceReserve, uint32 pairTime) = _priceSource.getReserves();
         require(counterpartyReserve != 0 && referenceReserve != 0, "USM/no-liquidity");
         require(pairLatestTradeTime != 0);
         // Store accumulator value
-        latestAccumulator = (referenceTokenPosition == 0) ? priceSource.price0CumulativeLast() : priceSource.price1CumulativeLast();
+        latestAccumulator = (referenceTokenPosition == 0) ? _priceSource.price0CumulativeLast() : _priceSource.price1CumulativeLast();
         // Set remaining params
         referenceToken = rToken;
         pairLatestTradeTime = pairTime;
@@ -137,8 +137,8 @@ contract USM is UniswapV2Library, Logging {
         uint32 pairTradeTimeGap = adjustedCurrentTime - pairLatestTradeTime; // overflow is desired
 
         uint currentAccumulator = (referenceTokenPosition == 0) ?
-          priceSource.price0CumulativeLast() : priceSource.price1CumulativeLast();
-        (uint112 reserve0, uint112 reserve1, uint32 pairTime) = priceSource.getReserves();
+          _priceSource.price0CumulativeLast() : _priceSource.price1CumulativeLast();
+        (uint112 reserve0, uint112 reserve1, uint32 pairTime) = _priceSource.getReserves();
 
         require(reserve0 != 0 && reserve1 != 0, "USM/no-pair-liquidity");
         if (pairTime != adjustedCurrentTime) {
@@ -168,6 +168,6 @@ contract USM is UniswapV2Library, Logging {
     }
 
     function priceSource() external view returns (address) {
-        return address(priceSource);
+        return address(_priceSource);
     }
 }
