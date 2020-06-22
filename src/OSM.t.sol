@@ -1,11 +1,11 @@
-pragma solidity >=0.5.15;
+pragma solidity >=0.6.7;
 
 import "ds-test/test.sol";
 import {DSValue} from "ds-value/value.sol";
 import {OSM} from "./OSM.sol";
 
-contract Hevm {
-    function warp(uint256) public;
+abstract contract Hevm {
+    function warp(uint256) virtual public;
 }
 
 contract OSMTest is DSTest {
