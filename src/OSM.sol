@@ -12,20 +12,20 @@ contract Logging {
     ) anonymous;
 
     modifier emitLog {
+        //
+        //
         _;
         assembly {
-            // log an 'anonymous' event with a constant 6 words of calldata
-            // and four indexed topics: selector, caller, arg1 and arg2
-            let mark := msize()                       // end of memory ensures zero
+            let mark := mload(0x40)                   // end of memory ensures zero
             mstore(0x40, add(mark, 288))              // update free memory pointer
             mstore(mark, 0x20)                        // bytes type data offset
             mstore(add(mark, 0x20), 224)              // bytes size (padded)
             calldatacopy(add(mark, 0x40), 0, 224)     // bytes payload
             log4(mark, 288,                           // calldata
                  shl(224, shr(224, calldataload(0))), // msg.sig
-                 caller(),                            // msg.sender
                  calldataload(4),                     // arg1
-                 calldataload(36)                     // arg2
+                 calldataload(36),                    // arg2
+                 calldataload(68)                     // arg3
                 )
         }
     }
@@ -40,6 +40,7 @@ contract OSM is Logging {
     */
     function addAuthorization(address account) external emitLog isAuthorized {
         authorizedAccounts[account] = 1;
+        emit AddAuthorization(account);
     }
     /**
     * @notice Remove auth from an account
@@ -47,6 +48,7 @@ contract OSM is Logging {
     */
     function removeAuthorization(address account) external emitLog isAuthorized {
         authorizedAccounts[account] = 0;
+        emit RemoveAuthorization(account);
     }
     /**
     * @notice Checks whether msg.sender can call an authed function
@@ -79,7 +81,14 @@ contract OSM is Logging {
     Feed currentFeed;
     Feed nextFeed;
 
-    event LogValue(bytes32 value);
+    event AddAuthorization(address account);
+    event RemoveAuthorization(address account);
+    event Start();
+    event Stop();
+    event ChangePriceSource(address priceSource);
+    event ChangeDelay(uint16 delay);
+    event RestartValue();
+    event UpdateResult(bytes32 value);
 
     constructor (address priceSource_) public {
         authorizedAccounts[msg.sender] = 1;
@@ -88,13 +97,16 @@ contract OSM is Logging {
 
     function stop() external emitLog isAuthorized {
         stopped = 1;
+        emit Stop();
     }
     function start() external emitLog isAuthorized {
         stopped = 0;
+        emit Start();
     }
 
     function changePriceSource(address priceSource_) external emitLog isAuthorized {
         priceSource = priceSource_;
+        emit ChangePriceSource(priceSource);
     }
 
     function currentTime() internal view returns (uint) {
@@ -109,11 +121,13 @@ contract OSM is Logging {
     function changeDelay(uint16 delay) external isAuthorized {
         require(delay > 0, "OSM/delay-is-zero");
         updateDelay = delay;
+        emit ChangeDelay(updateDelay);
     }
 
     function restartValue() external emitLog isAuthorized {
         currentFeed = nextFeed = Feed(0, 0);
         stopped = 1;
+        emit RestartValue();
     }
 
     function passedDelay() public view returns (bool ok) {
@@ -127,7 +141,7 @@ contract OSM is Logging {
             currentFeed = nextFeed;
             nextFeed = Feed(uint128(uint(priceFeedValue)), 1);
             lastUpdateTime = latestUpdateTime(currentTime());
-            emit LogValue(bytes32(uint(currentFeed.value)));
+            emit UpdateResult(bytes32(uint(currentFeed.value)));
         }
     }
 
