@@ -18,20 +18,3 @@ val       = osm.read() // get current value, or fail
 ```
 
 If this `DSValue` has a valid value on creation, the OSM with start with that same value.
-
-# Uniswap Security Module
-
-This contract is very similar to OSM, although it gets its price feed from a Uniswap V2 pair.
-
-```
-// create
-USM usm = new USM(0x01, 0x02, 0);
-
-// can be updated every hour, on the hour
-usm.changeDelay(3600);
-
-(val, ok) = usm.getResultWithValidity() // get current value & its validity
-(val, ok) = usm.getNextResultWithValidity() // get upcoming value
-val       = usm.read() // get current value, or fail
-
-```
