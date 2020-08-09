@@ -95,6 +95,7 @@ contract OSM is Logging {
         authorizedAccounts[msg.sender] = 1;
         priceSource = priceSource_;
         emit AddAuthorization(msg.sender);
+        emit ChangePriceSource(priceSource);
     }
 
     function stop() external emitLog isAuthorized {
