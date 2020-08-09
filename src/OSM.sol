@@ -81,6 +81,7 @@ contract OSM is Logging {
     Feed currentFeed;
     Feed nextFeed;
 
+    // --- Events ---
     event AddAuthorization(address account);
     event RemoveAuthorization(address account);
     event Start();
@@ -93,6 +94,7 @@ contract OSM is Logging {
     constructor (address priceSource_) public {
         authorizedAccounts[msg.sender] = 1;
         priceSource = priceSource_;
+        emit AddAuthorization(msg.sender);
     }
 
     function stop() external emitLog isAuthorized {
