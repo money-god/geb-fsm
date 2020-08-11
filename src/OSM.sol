@@ -2,43 +2,14 @@ pragma solidity >=0.6.7;
 
 import "ds-value/value.sol";
 
-contract Logging {
-    event LogNote(
-        bytes4   indexed  sig,
-        address  indexed  usr,
-        bytes32  indexed  arg1,
-        bytes32  indexed  arg2,
-        bytes             data
-    ) anonymous;
-
-    modifier emitLog {
-        //
-        //
-        _;
-        assembly {
-            let mark := mload(0x40)                   // end of memory ensures zero
-            mstore(0x40, add(mark, 288))              // update free memory pointer
-            mstore(mark, 0x20)                        // bytes type data offset
-            mstore(add(mark, 0x20), 224)              // bytes size (padded)
-            calldatacopy(add(mark, 0x40), 0, 224)     // bytes payload
-            log4(mark, 288,                           // calldata
-                 shl(224, shr(224, calldataload(0))), // msg.sig
-                 calldataload(4),                     // arg1
-                 calldataload(36),                    // arg2
-                 calldataload(68)                     // arg3
-                )
-        }
-    }
-}
-
-contract OSM is Logging {
+contract OSM {
     // --- Auth ---
     mapping (address => uint) public authorizedAccounts;
     /**
     * @notice Add auth to an account
     * @param account Account to add auth to
     */
-    function addAuthorization(address account) external emitLog isAuthorized {
+    function addAuthorization(address account) external isAuthorized {
         authorizedAccounts[account] = 1;
         emit AddAuthorization(account);
     }
@@ -46,7 +17,7 @@ contract OSM is Logging {
     * @notice Remove auth from an account
     * @param account Account to remove auth from
     */
-    function removeAuthorization(address account) external emitLog isAuthorized {
+    function removeAuthorization(address account) external isAuthorized {
         authorizedAccounts[account] = 0;
         emit RemoveAuthorization(account);
     }
@@ -94,27 +65,29 @@ contract OSM is Logging {
     constructor (address priceSource_) public {
         authorizedAccounts[msg.sender] = 1;
         priceSource = priceSource_;
-        (bytes32 priceFeedValue, bool hasValidValue) = DSValue(priceSource).getResultWithValidity();
-        if (hasValidValue) {
-          nextFeed = Feed(uint128(uint(priceFeedValue)), 1);
-          currentFeed = nextFeed;
-          lastUpdateTime = latestUpdateTime(currentTime());
-          emit UpdateResult(bytes32(uint(currentFeed.value)));
+        if (priceSource != address(0)) {
+          (bytes32 priceFeedValue, bool hasValidValue) = DSValue(priceSource).getResultWithValidity();
+          if (hasValidValue) {
+            nextFeed = Feed(uint128(uint(priceFeedValue)), 1);
+            currentFeed = nextFeed;
+            lastUpdateTime = latestUpdateTime(currentTime());
+            emit UpdateResult(bytes32(uint(currentFeed.value)));
+          }
+          emit AddAuthorization(msg.sender);
+          emit ChangePriceSource(priceSource);
         }
-        emit AddAuthorization(msg.sender);
-        emit ChangePriceSource(priceSource);
     }
 
-    function stop() external emitLog isAuthorized {
+    function stop() external isAuthorized {
         stopped = 1;
         emit Stop();
     }
-    function start() external emitLog isAuthorized {
+    function start() external isAuthorized {
         stopped = 0;
         emit Start();
     }
 
-    function changePriceSource(address priceSource_) external emitLog isAuthorized {
+    function changePriceSource(address priceSource_) external isAuthorized {
         priceSource = priceSource_;
         emit ChangePriceSource(priceSource);
     }
@@ -134,7 +107,7 @@ contract OSM is Logging {
         emit ChangeDelay(updateDelay);
     }
 
-    function restartValue() external emitLog isAuthorized {
+    function restartValue() external isAuthorized {
         currentFeed = nextFeed = Feed(0, 0);
         stopped = 1;
         emit RestartValue();
@@ -144,7 +117,7 @@ contract OSM is Logging {
         return currentTime() >= add(lastUpdateTime, updateDelay);
     }
 
-    function updateResult() external emitLog stoppable {
+    function updateResult() external stoppable {
         require(passedDelay(), "OSM/not-passed");
         (bytes32 priceFeedValue, bool hasValidValue) = DSValue(priceSource).getResultWithValidity();
         if (hasValidValue) {

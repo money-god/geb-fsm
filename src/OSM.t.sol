@@ -46,6 +46,18 @@ contract OSMTest is DSTest {
         assertTrue(!has);
     }
 
+    function testSetupNullPriceSource() public {
+        osm = new OSM(address(0));
+
+        (bytes32 val, bool has) = osm.getResultWithValidity();
+        assertEq(uint(val), uint(0));
+        assertTrue(!has);
+
+        (val, has) = osm.getNextResultWithValidity();
+        assertEq(uint(val), uint(0));
+        assertTrue(!has);
+    }
+
     function testChangeValue() public {
         assertEq(osm.priceSource(), address(feed));             //verify osm source is feed
         DSValue feed2 = new DSValue();                          //create new feed
