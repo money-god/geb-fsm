@@ -66,7 +66,7 @@ contract OSM {
         authorizedAccounts[msg.sender] = 1;
         priceSource = priceSource_;
         if (priceSource != address(0)) {
-          (bytes32 priceFeedValue, bool hasValidValue) = DSValue(priceSource).getResultWithValidity();
+          (bytes32 priceFeedValue, bool hasValidValue) = getPriceSourceUpdate();
           if (hasValidValue) {
             nextFeed = Feed(uint128(uint(priceFeedValue)), 1);
             currentFeed = nextFeed;
@@ -117,9 +117,18 @@ contract OSM {
         return currentTime() >= add(lastUpdateTime, updateDelay);
     }
 
+    function getPriceSourceUpdate() internal view returns (bytes32, bool) {
+        try DSValue(priceSource).getResultWithValidity() returns (bytes32 priceFeedValue, bool hasValidValue) {
+          return (priceFeedValue, hasValidValue);
+        }
+        catch(bytes memory revertReason) {
+          return (bytes32(0), false);
+        }
+    }
+
     function updateResult() external stoppable {
         require(passedDelay(), "OSM/not-passed");
-        (bytes32 priceFeedValue, bool hasValidValue) = DSValue(priceSource).getResultWithValidity();
+        (bytes32 priceFeedValue, bool hasValidValue) = getPriceSourceUpdate();
         if (hasValidValue) {
             currentFeed = nextFeed;
             nextFeed = Feed(uint128(uint(priceFeedValue)), 1);
