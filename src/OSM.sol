@@ -94,6 +94,13 @@ contract OSM is Logging {
     constructor (address priceSource_) public {
         authorizedAccounts[msg.sender] = 1;
         priceSource = priceSource_;
+        (bytes32 priceFeedValue, bool hasValidValue) = DSValue(priceSource).getResultWithValidity();
+        if (hasValidValue) {
+          nextFeed = Feed(uint128(uint(priceFeedValue)), 1);
+          currentFeed = nextFeed;
+          lastUpdateTime = latestUpdateTime(currentTime());
+          emit UpdateResult(bytes32(uint(currentFeed.value)));
+        }
         emit AddAuthorization(msg.sender);
         emit ChangePriceSource(priceSource);
     }
