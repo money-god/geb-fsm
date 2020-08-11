@@ -73,9 +73,9 @@ contract OSM {
             lastUpdateTime = latestUpdateTime(currentTime());
             emit UpdateResult(bytes32(uint(currentFeed.value)));
           }
-          emit AddAuthorization(msg.sender);
-          emit ChangePriceSource(priceSource);
         }
+        emit AddAuthorization(msg.sender);
+        emit ChangePriceSource(priceSource);
     }
 
     function stop() external isAuthorized {
