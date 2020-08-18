@@ -60,18 +60,18 @@ contract OSM {
     event ChangePriceSource(address priceSource);
     event ChangeDelay(uint16 delay);
     event RestartValue();
-    event UpdateResult(bytes32 value);
+    event UpdateResult(uint256 newMedian, uint256 lastUpdateTime);
 
     constructor (address priceSource_) public {
         authorizedAccounts[msg.sender] = 1;
         priceSource = priceSource_;
         if (priceSource != address(0)) {
-          (bytes32 priceFeedValue, bool hasValidValue) = getPriceSourceUpdate();
+          (uint256 priceFeedValue, bool hasValidValue) = getPriceSourceUpdate();
           if (hasValidValue) {
             nextFeed = Feed(uint128(uint(priceFeedValue)), 1);
             currentFeed = nextFeed;
             lastUpdateTime = latestUpdateTime(currentTime());
-            emit UpdateResult(bytes32(uint(currentFeed.value)));
+            emit UpdateResult(uint(currentFeed.value), lastUpdateTime);
           }
         }
         emit AddAuthorization(msg.sender);
@@ -117,36 +117,36 @@ contract OSM {
         return currentTime() >= add(lastUpdateTime, updateDelay);
     }
 
-    function getPriceSourceUpdate() internal view returns (bytes32, bool) {
-        try DSValue(priceSource).getResultWithValidity() returns (bytes32 priceFeedValue, bool hasValidValue) {
+    function getPriceSourceUpdate() internal view returns (uint256, bool) {
+        try DSValue(priceSource).getResultWithValidity() returns (uint256 priceFeedValue, bool hasValidValue) {
           return (priceFeedValue, hasValidValue);
         }
         catch(bytes memory revertReason) {
-          return (bytes32(0), false);
+          return (0, false);
         }
     }
 
     function updateResult() external stoppable {
         require(passedDelay(), "OSM/not-passed");
-        (bytes32 priceFeedValue, bool hasValidValue) = getPriceSourceUpdate();
+        (uint256 priceFeedValue, bool hasValidValue) = getPriceSourceUpdate();
         if (hasValidValue) {
             currentFeed = nextFeed;
             nextFeed = Feed(uint128(uint(priceFeedValue)), 1);
             lastUpdateTime = latestUpdateTime(currentTime());
-            emit UpdateResult(bytes32(uint(currentFeed.value)));
+            emit UpdateResult(uint(currentFeed.value), lastUpdateTime);
         }
     }
 
-    function getResultWithValidity() external view returns (bytes32,bool) {
-        return (bytes32(uint(currentFeed.value)), currentFeed.isValid == 1);
+    function getResultWithValidity() external view returns (uint256,bool) {
+        return (uint(currentFeed.value), currentFeed.isValid == 1);
     }
 
-    function getNextResultWithValidity() external view returns (bytes32,bool) {
-        return (bytes32(uint(nextFeed.value)), nextFeed.isValid == 1);
+    function getNextResultWithValidity() external view returns (uint256,bool) {
+        return (nextFeed.value, nextFeed.isValid == 1);
     }
 
-    function read() external view returns (bytes32) {
+    function read() external view returns (uint256) {
         require(currentFeed.isValid == 1, "OSM/no-current-value");
-        return (bytes32(uint(currentFeed.value)));
+        return currentFeed.value;
     }
 }

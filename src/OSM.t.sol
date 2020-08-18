@@ -16,7 +16,7 @@ contract OSMTest is DSTest {
 
     function setUp() public {
         feed = new DSValue();                                    //create new feed
-        feed.updateResult(bytes32(uint(100 ether)));             //set feed to 100
+        feed.updateResult(uint(100 ether));                      //set feed to 100
         osm = new OSM(address(feed));                            //create new osm linked to feed
         hevm = Hevm(0x7109709ECfa91a80626fF3989D68f67F5b1DD12D); //get hevm instance
         hevm.warp(uint(osm.updateDelay()));                      //warp 1 hop
@@ -24,7 +24,7 @@ contract OSMTest is DSTest {
     }
 
     function testSetup() public {
-        (bytes32 val, bool has) = osm.getResultWithValidity();
+        (uint val, bool has) = osm.getResultWithValidity();
         assertEq(uint(val), uint(100 ether));
         assertTrue(has);
 
@@ -37,7 +37,7 @@ contract OSMTest is DSTest {
         feed = new DSValue();
         osm = new OSM(address(feed));
 
-        (bytes32 val, bool has) = osm.getResultWithValidity();
+        (uint val, bool has) = osm.getResultWithValidity();
         assertEq(uint(val), uint(0));
         assertTrue(!has);
 
@@ -49,7 +49,7 @@ contract OSMTest is DSTest {
     function testSetupNullPriceSource() public {
         osm = new OSM(address(0));
 
-        (bytes32 val, bool has) = osm.getResultWithValidity();
+        (uint val, bool has) = osm.getResultWithValidity();
         assertEq(uint(val), uint(0));
         assertTrue(!has);
 
@@ -61,7 +61,7 @@ contract OSMTest is DSTest {
     function testFailSetupRandomPriceSource() public {
         osm = new OSM(address(0x123));
 
-        (bytes32 val, bool has) = osm.getResultWithValidity();
+        (uint val, bool has) = osm.getResultWithValidity();
         assertEq(uint(val), uint(0));
         assertTrue(!has);
 
@@ -91,7 +91,7 @@ contract OSMTest is DSTest {
         assertTrue(osm.stopped() == 0);                         //verify osm is active
         hevm.warp(uint(osm.updateDelay() * 2));                 //warp 2 updateDelay
         osm.updateResult();                                     //set new curent and next osm value
-        (bytes32 val, bool has) = osm.getResultWithValidity();  //pull current osm value
+        (uint val, bool has) = osm.getResultWithValidity();     //pull current osm value
         assertEq(uint(val), 100 ether);                         //verify osm value is 100
         assertTrue(has);                                        //verify osm value is valid
         (val, has) = osm.getNextResultWithValidity();           //pull next osm value
@@ -108,10 +108,10 @@ contract OSMTest is DSTest {
     }
 
     function testUpdateValue() public {
-        feed.updateResult(bytes32(uint(101 ether)));            //set new feed value
+        feed.updateResult(uint(101 ether));                     //set new feed value
         hevm.warp(uint(osm.lastUpdateTime() * 2));              //warp 2 hops
         osm.updateResult();                                     //set new current and next osm value
-        (bytes32 val, bool has) = osm.getResultWithValidity();  //pull current osm value
+        (uint val, bool has) = osm.getResultWithValidity();     //pull current osm value
         assertEq(uint(val), 100 ether);                         //verify current osm value is 100
         assertTrue(has);                                        //verify current osm value is valid
         (val, has) = osm.getNextResultWithValidity();           //pull next osm value
@@ -125,7 +125,7 @@ contract OSMTest is DSTest {
     }
 
     function testFailUpdateValue() public {
-        feed.updateResult(bytes32(uint(101 ether)));            //set new current and next osm value
+        feed.updateResult(uint(101 ether));                     //set new current and next osm value
         hevm.warp(uint(osm.lastUpdateTime() * 2 - 1));          //warp 2 hops - 1 second
         osm.updateResult();                                     //attempt to set new current and next osm value
     }
