@@ -2,7 +2,7 @@ pragma solidity >=0.6.7;
 
 import "ds-test/test.sol";
 import {DSValue} from "ds-value/value.sol";
-import {OSM} from "./OSM.sol";
+import {OSM} from "../OSM.sol";
 
 abstract contract Hevm {
     function warp(uint256) virtual public;
