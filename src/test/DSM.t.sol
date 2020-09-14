@@ -181,4 +181,51 @@ contract DSMTest is DSTest {
         hevm.warp(uint(dsm.lastUpdateTime() * 2 - 1));          //warp 2 hops - 1 second
         dsm.updateResult();                                     //attempt to set new current and next dsm value
     }
+
+    function testConstructorDoesNotUpdateFeed() public {
+        feed = new DSValue();                                      // create new feed
+        dsm = new DSM(address(feed), 1);                           // create new dsm linked to feed and with 99.99% deviation tolerance
+
+        (uint val, bool has) = dsm.getResultWithValidity();
+        assertEq(uint(val), 0);
+        assertTrue(!has);
+
+        (val, has) = dsm.getNextResultWithValidity();
+        assertEq(uint(val), 0);
+        assertTrue(!has);
+
+        feed.updateResult(uint(100 ether));
+        dsm.changeNextPriceDeviation(0.95E18);
+        dsm.updateResult();
+
+        hevm.warp(uint(dsm.lastUpdateTime()));
+        assertEq(uint(dsm.getNextPriceLowerBound()), 0);
+        assertEq(uint(dsm.getNextPriceUpperBound()), 0);
+        assertEq(uint(dsm.getNextBoundedPrice()), 100E18);
+
+        hevm.warp(uint(dsm.lastUpdateTime()) * 2);
+        dsm.updateResult();
+
+        (val, has) = dsm.getResultWithValidity();
+        assertEq(uint(val), 100E18);
+        assertTrue(has);
+
+        (val, has) = dsm.getNextResultWithValidity();
+        assertEq(uint(val), 100E18);
+        assertTrue(has);
+
+        feed.updateResult(uint(106 ether));
+        hevm.warp(uint(dsm.lastUpdateTime()) * 3);
+        dsm.updateResult();
+        hevm.warp(uint(dsm.lastUpdateTime()) * 4);
+        dsm.updateResult();
+
+        (val, has) = dsm.getResultWithValidity();
+        assertEq(uint(val), 105E18);
+        assertTrue(has);
+
+        (val, has) = dsm.getNextResultWithValidity();
+        assertEq(uint(val), 106E18);
+        assertTrue(has);
+    }
 }

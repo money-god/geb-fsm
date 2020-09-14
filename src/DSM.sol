@@ -168,6 +168,7 @@ contract DSM {
 
     function getNextBoundedPrice() public view returns (uint128 boundedPrice) {
         boundedPrice = nextFeed.value;
+        if (currentFeed.value == 0) return boundedPrice;
 
         uint128 lowerBound = uint128(wmultiply(uint(currentFeed.value), newPriceDeviation));
         uint128 upperBound = uint128(wmultiply(uint(currentFeed.value), subtract(multiply(uint(2), WAD), newPriceDeviation)));
