@@ -67,7 +67,7 @@ contract DSM {
     event UpdateResult(uint256 newMedian, uint256 lastUpdateTime);
 
     constructor (address priceSource_, uint256 deviation) public {
-        require(deviation < WAD, "DSM/invalid-deviation");
+        require(both(deviation > 0, deviation < WAD), "DSM/invalid-deviation");
         authorizedAccounts[msg.sender] = 1;
         priceSource = priceSource_;
         newPriceDeviation = deviation;
@@ -83,6 +83,11 @@ contract DSM {
         emit AddAuthorization(msg.sender);
         emit ChangePriceSource(priceSource);
         emit ChangeDeviation(deviation);
+    }
+
+    // --- Boolean Logic ---
+    function both(bool x, bool y) internal pure returns (bool z) {
+        assembly{ z := and(x, y)}
     }
 
     // --- Math ---
@@ -123,7 +128,7 @@ contract DSM {
     }
 
     function changeNextPriceDeviation(uint deviation) external isAuthorized {
-        require(deviation < WAD, "DSM/invalid-deviation");
+        require(both(deviation > 0, deviation < WAD), "DSM/invalid-deviation");
         newPriceDeviation = deviation;
         emit ChangeDeviation(deviation);
     }
