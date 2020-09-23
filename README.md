@@ -18,3 +18,20 @@ val       = osm.read() // get current value, or fail
 ```
 
 If this `DSValue` has a valid value on creation, the OSM with start with that same value.
+
+# Dampened Security Module
+
+This contract is similar to the OSM although it allows a maximum `deviation` change between two consecutive price updates (e.g the next price cannot be more than 5% deviated from the latest one).
+
+```
+// create a DSM that allows 10% deviation between two consecutive price updates
+DSM dsm = new DSM(DSValue(src), 0.9 * 10**18);
+
+// can be updated every hour, on the hour
+dsm.changeDelay(3600);
+
+(val, ok) = dsm.getResultWithValidity() // get current value & its validity
+(val, ok) = dsm.getNextResultWithValidity() // get upcoming value
+val       = dsm.read() // get current value, or fail
+
+```
