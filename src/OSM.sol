@@ -121,7 +121,7 @@ contract OSM {
         try DSValue(priceSource).getResultWithValidity() returns (uint256 priceFeedValue, bool hasValidValue) {
           return (priceFeedValue, hasValidValue);
         }
-        catch(bytes memory revertReason) {
+        catch(bytes memory) {
           return (0, false);
         }
     }
