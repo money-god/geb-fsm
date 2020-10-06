@@ -1,6 +1,8 @@
 pragma solidity ^0.6.7;
 
-import "ds-value/value.sol";
+abstract contract DSValueLike {
+    function getResultWithValidity() virtual external view returns (uint256, bool);
+}
 
 contract DSM {
     // --- Auth ---
@@ -163,7 +165,7 @@ contract DSM {
 
     // --- Getters ---
     function getPriceSourceUpdate() internal view returns (uint256, bool) {
-        try DSValue(priceSource).getResultWithValidity() returns (uint256 priceFeedValue, bool hasValidValue) {
+        try DSValueLike(priceSource).getResultWithValidity() returns (uint256 priceFeedValue, bool hasValidValue) {
           return (priceFeedValue, hasValidValue);
         }
         catch(bytes memory) {
