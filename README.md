@@ -21,7 +21,7 @@ If this `DSValue` has a valid value on creation, the OSM with start with that sa
 
 # Dampened Security Module
 
-This contract is similar to the OSM although it allows a maximum `deviation` change between two consecutive price updates (e.g the next price cannot be more than 5% deviated from the latest one).
+This contract is similar to the OSM although it allows a maximum `deviation` change between two consecutive price updates (e.g the next price cannot be more than 5% deviated from the last one).
 
 ```
 // create a DSM that allows 10% deviation between two consecutive price updates
