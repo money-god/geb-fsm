@@ -1,4 +1,4 @@
-pragma solidity >=0.6.7;
+pragma solidity 0.6.7;
 
 abstract contract DSValueLike {
     function getResultWithValidity() virtual external view returns (uint256, bool);
