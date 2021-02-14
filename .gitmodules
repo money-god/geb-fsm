@@ -4,3 +4,6 @@
 [submodule "lib/ds-stop"]
 	path = lib/ds-stop
 	url = https://github.com/reflexer-labs/ds-stop.git
+[submodule "lib/geb-treasury-reimbursement"]
+	path = lib/geb-treasury-reimbursement
+	url = https://github.com/reflexer-labs/geb-treasury-reimbursement.git
