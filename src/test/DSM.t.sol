@@ -2,6 +2,8 @@ pragma solidity >=0.6.7;
 
 import "ds-test/test.sol";
 import {DSValue} from "ds-value/value.sol";
+import {DSToken} from "ds-token/token.sol";
+import {MockTreasury} from "./MockTreasury.sol";
 import {DSM} from "../DSM.sol";
 
 abstract contract Hevm {
@@ -11,10 +13,17 @@ abstract contract Hevm {
 contract DSMTest is DSTest {
     Hevm hevm;
 
+    MockTreasury treasury;
+    DSToken coin;
     DSValue feed;
     DSM dsm;
 
     uint WAD = 10 ** 18;
+
+    uint256 baseCallerReward              = 15 ether;
+    uint256 maxCallerReward               = 100 ether;
+    uint256 initTokenAmount               = 100000000 ether;
+    uint256 perSecondCallerRewardIncrease = 1000192559420674483977255848; // 100% over one hour
 
     function setUp() public {
         feed = new DSValue();                                      // create new feed
@@ -23,6 +32,25 @@ contract DSMTest is DSTest {
         hevm = Hevm(0x7109709ECfa91a80626fF3989D68f67F5b1DD12D);   // get hevm instance
         hevm.warp(uint(dsm.updateDelay()));                        // warp 1 hop
         dsm.updateResult();                                        // set new next dsm value
+
+        // setting up increasingRewards - note: without these rewards are not paid out
+        // Create token
+        coin = new DSToken("RAI", "RAI");
+        coin.mint(initTokenAmount);
+
+        // Create treasury
+        treasury = new MockTreasury(address(coin));
+        coin.transfer(address(treasury), initTokenAmount);
+    
+        // pinger.setup(address(treasury), baseCallerReward, maxCallerReward, perSecondCallerRewardIncrease);
+        dsm.modifyParameters("treasury", address(treasury));
+        dsm.modifyParameters("maxUpdateCallerReward", maxCallerReward);
+        dsm.modifyParameters("baseUpdateCallerReward", baseCallerReward);
+        dsm.modifyParameters("perSecondCallerRewardIncrease", perSecondCallerRewardIncrease);
+
+        // Setup treasury allowance
+        treasury.setTotalAllowance(address(dsm), uint(-1));
+        treasury.setPerBlockAllowance(address(dsm), uint(-1));
     }
 
     function testSetup() public {
@@ -227,5 +255,43 @@ contract DSMTest is DSTest {
         (val, has) = dsm.getNextResultWithValidity();
         assertEq(uint(val), 106E18);
         assertTrue(has);
+    }
+
+    function burnCoinBalance() internal {
+        coin.burn(coin.balanceOf(address(this)));
+    }
+
+    function test_increasing_rewards2() public {
+        hevm.warp(now + dsm.updateDelay());
+        dsm.updateResult();
+        assertEq(coin.balanceOf(address(this)), baseCallerReward);
+
+        burnCoinBalance();
+        hevm.warp(now + dsm.updateDelay() * 2); // 100% reward increase
+        dsm.updateResult();
+        assertEq(coin.balanceOf(address(this)), (baseCallerReward * 2) - 1); // 1 wei precision loss
+
+        burnCoinBalance();
+        hevm.warp(now + dsm.updateDelay() * 3); // 300% reward increase (2h, 100%/hour)
+        dsm.updateResult();
+        assertEq(coin.balanceOf(address(this)), (baseCallerReward * 4) - 1); // 1 wei precision loss
+
+        burnCoinBalance();
+        hevm.warp(now + dsm.updateDelay() * 4); // will pay out maxCallerReward
+        dsm.updateResult();
+        assertEq(coin.balanceOf(address(this)), maxCallerReward);
+
+        burnCoinBalance();
+        hevm.warp(now + 3 days); // long delay, will pay out maxCallerReward
+        dsm.updateResult();
+        assertEq(coin.balanceOf(address(this)), maxCallerReward);
+
+        // no allowance in treasury
+        treasury.setTotalAllowance(address(dsm), 0);
+        burnCoinBalance();
+        hevm.warp(now + dsm.updateDelay() * 3); // long delay, will pay out maxCallerReward
+        dsm.updateResult();
+        assertEq(coin.balanceOf(address(this)), 0); // no payout
+        assertEq(dsm.lastUpdateTime(), now - (now % dsm.updateDelay())); // still updates
     }
 }
