@@ -28,6 +28,7 @@ contract OSM is NoSetupIncreasingTreasuryReimbursement {
 
     // --- Events ---
     event ModifyParameters(bytes32 parameter, uint256 val);
+    event ModifyParameters(bytes32 parameter, address val);
     event Start();
     event Stop();
     event ChangePriceSource(address priceSource);
@@ -75,6 +76,19 @@ contract OSM is NoSetupIncreasingTreasuryReimbursement {
           maxRewardIncreaseDelay = val;
         }
         else revert("OSM/modify-unrecognized-param");
+        emit ModifyParameters(parameter, val);
+    }
+    /*
+    * @notify Modify an address parameter
+    * @param parameter The parameter name
+    * @param val The new value for the parameter
+    */
+    function modifyParameters(bytes32 parameter, address val) external isAuthorized {
+        if (parameter == "treasury") {
+          require(val != address(0), "DSM/invalid-treasury");
+          treasury = StabilityFeeTreasuryLike(val);
+        }
+        else revert("DSM/modify-unrecognized-param");
         emit ModifyParameters(parameter, val);
     }
 
