@@ -85,10 +85,10 @@ contract OSM is NoSetupIncreasingTreasuryReimbursement {
     */
     function modifyParameters(bytes32 parameter, address val) external isAuthorized {
         if (parameter == "treasury") {
-          require(val != address(0), "DSM/invalid-treasury");
+          require(val != address(0), "OSM/invalid-treasury");
           treasury = StabilityFeeTreasuryLike(val);
         }
-        else revert("DSM/modify-unrecognized-param");
+        else revert("OSM/modify-unrecognized-param");
         emit ModifyParameters(parameter, val);
     }
 
@@ -100,14 +100,14 @@ contract OSM is NoSetupIncreasingTreasuryReimbursement {
 
     // --- Core Logic ---
     /*
-    * @notify Stop the DSM
+    * @notify Stop the OSM
     */
     function stop() external isAuthorized {
         stopped = 1;
         emit Stop();
     }
     /*
-    * @notify Start the DSM
+    * @notify Start the OSM
     */
     function start() external isAuthorized {
         stopped = 0;
@@ -115,8 +115,8 @@ contract OSM is NoSetupIncreasingTreasuryReimbursement {
     }
 
     /*
-    * @notify Change the oracle from which the DSM reads
-    * @param priceSource_ The address of the oracle from which the DSM reads
+    * @notify Change the oracle from which the OSM reads
+    * @param priceSource_ The address of the oracle from which the OSM reads
     */
     function changePriceSource(address priceSource_) external isAuthorized {
         priceSource = priceSource_;
@@ -150,7 +150,7 @@ contract OSM is NoSetupIncreasingTreasuryReimbursement {
     }
 
     /*
-    * @notify Restart/set to zero the feeds stored in the DSM
+    * @notify Restart/set to zero the feeds stored in the OSM
     */
     function restartValue() external isAuthorized {
         currentFeed = nextFeed = Feed(0, 0);
@@ -166,7 +166,7 @@ contract OSM is NoSetupIncreasingTreasuryReimbursement {
     }
 
     /*
-    * @notify Update the price feeds inside the DSM
+    * @notify Update the price feeds inside the OSM
     */
     function updateResult() external stoppable {
         // Check if the delay passed
