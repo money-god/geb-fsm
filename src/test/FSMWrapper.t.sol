@@ -21,6 +21,8 @@ contract FSMWrapperTest is DSTest {
 
     FSMWrapper wrapper;
 
+    uint256 reimburseDelay = 3600;
+
     uint WAD = 10 ** 18;
 
     function setUp() public {
@@ -35,7 +37,7 @@ contract FSMWrapperTest is DSTest {
         osm.updateResult();                                        // set new next osm value
         dsm.updateResult();                                        // set new next dsm value
 
-        wrapper = new FSMWrapper(address(osm));
+        wrapper = new FSMWrapper(address(osm), reimburseDelay);
     }
 
     function test_setup() public {

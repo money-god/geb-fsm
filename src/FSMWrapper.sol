@@ -1,5 +1,7 @@
 pragma solidity 0.6.7;
 
+import "geb-treasury-reimbursement/NoSetupIncreasingTreasuryReimbursement.sol";
+
 abstract contract FSMLike {
     function stopped() virtual public view returns (uint256);
     function priceSource() virtual public view returns (address);
@@ -15,57 +17,95 @@ abstract contract FSMLike {
     function read() virtual external view returns (uint256);
 }
 
-contract FSMWrapper {
-    // --- Auth ---
-    mapping (address => uint) public authorizedAccounts;
-    /**
-    * @notice Add auth to an account
-    * @param account Account to add auth to
-    */
-    function addAuthorization(address account) external isAuthorized {
-        authorizedAccounts[account] = 1;
-        emit AddAuthorization(account);
-    }
-    /**
-    * @notice Remove auth from an account
-    * @param account Account to remove auth from
-    */
-    function removeAuthorization(address account) external isAuthorized {
-        authorizedAccounts[account] = 0;
-        emit RemoveAuthorization(account);
-    }
-    /**
-    * @notice Checks whether msg.sender can call an authed function
-    **/
-    modifier isAuthorized {
-        require(authorizedAccounts[msg.sender] == 1, "FSMWrapper/account-not-authorized");
-        _;
-    }
-
+contract FSMWrapper is NoSetupIncreasingTreasuryReimbursement {
     // --- Vars ---
+    // When the rate has last been relayed
+    uint256 public lastReimburseTime;       // [timestamp]
+    // Enforced gap between reimbursements
+    uint256 public reimburseDelay;          // [seconds]
+
     FSMLike public fsm;
 
-    // --- Events ---
-    event AddAuthorization(address account);
-    event RemoveAuthorization(address account);
-    event ModifyParameters(bytes32 parameter, address addr);
-
-    constructor(address fsm_) public {
-        authorizedAccounts[msg.sender] = 1;
+    constructor(address fsm_, uint256 reimburseDelay_) public NoSetupIncreasingTreasuryReimbursement() {
         require(fsm_ != address(0), "FSMWrapper/null-fsm");
-        fsm = FSMLike(fsm_);
+
+        fsm            = FSMLike(fsm_);
+        reimburseDelay = reimburseDelay_;
+
+        emit ModifyParameters("reimburseDelay", reimburseDelay);
     }
 
     // --- Administration ---
     /*
-    * @notify Change the address of the FSM connected to this wrapper
+    * @notice Change the addresses of contracts that this wrapper is connected to
+    * @param parameter The contract whose address is changed
+    * @param addr The new contract address
     */
     function modifyParameters(bytes32 parameter, address addr) external isAuthorized {
+        require(addr != address(0), "FSMWrapper/null-addr");
         if (parameter == "fsm") {
           require(addr != address(0), "FSMWrapper/null-fsm");
           fsm = FSMLike(addr);
         }
+        else if (parameter == "treasury") {
+          require(StabilityFeeTreasuryLike(addr).systemCoin() != address(0), "FSMWrapper/treasury-coin-not-set");
+          treasury = StabilityFeeTreasuryLike(addr);
+        }
         else revert("FSMWrapper/modify-unrecognized-param");
+        emit ModifyParameters(
+          parameter,
+          addr
+        );
+    }
+    /*
+    * @notify Modify a uint256 parameter
+    * @param parameter The parameter name
+    * @param val The new parameter value
+    */
+    function modifyParameters(bytes32 parameter, uint256 val) external isAuthorized {
+        if (parameter == "baseUpdateCallerReward") {
+          require(val <= maxUpdateCallerReward, "FSMWrapper/invalid-base-caller-reward");
+          baseUpdateCallerReward = val;
+        }
+        else if (parameter == "maxUpdateCallerReward") {
+          require(val >= baseUpdateCallerReward, "FSMWrapper/invalid-max-caller-reward");
+          maxUpdateCallerReward = val;
+        }
+        else if (parameter == "perSecondCallerRewardIncrease") {
+          require(val >= RAY, "FSMWrapper/invalid-caller-reward-increase");
+          perSecondCallerRewardIncrease = val;
+        }
+        else if (parameter == "maxRewardIncreaseDelay") {
+          require(val > 0, "FSMWrapper/invalid-max-increase-delay");
+          maxRewardIncreaseDelay = val;
+        }
+        else if (parameter == "reimburseDelay") {
+          reimburseDelay = val;
+        }
+        else revert("FSMWrapper/modify-unrecognized-param");
+        emit ModifyParameters(
+          parameter,
+          val
+        );
+    }
+
+    // --- Renumeration Logic ---
+    /*
+    * @notice Renumerate the caller that updates the connected FSM
+    * @param feeReceiver The address that will receive the reward for the update
+    */
+    function renumerateCaller(address feeReceiver) external {
+        // Perform checks
+        require(address(fsm) == msg.sender, "FSMWrapper/invalid-caller");
+        require(feeReceiver != address(0), "FSMWrapper/null-fee-receiver");
+        // Check delay between calls
+        require(either(subtract(now, lastReimburseTime) >= reimburseDelay, lastReimburseTime == 0), "FSMWrapper/wait-more");
+        // Get the caller's reward
+        uint256 callerReward = getCallerReward(lastReimburseTime, reimburseDelay);
+        // Store the timestamp of the update
+        lastReimburseTime = now;
+        // Pay the caller for relaying the rate
+        rewardCaller(feeReceiver, callerReward);
     }
 
     // --- Wrapped Functionality ---
