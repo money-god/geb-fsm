@@ -104,7 +104,7 @@ contract FSMWrapper is NoSetupIncreasingTreasuryReimbursement {
         uint256 callerReward = getCallerReward(lastReimburseTime, reimburseDelay);
         // Store the timestamp of the update
         lastReimburseTime = now;
-        // Pay the caller for relaying the rate
+        // Pay the caller for updating the FSM
         rewardCaller(feeReceiver, callerReward);
     }
 

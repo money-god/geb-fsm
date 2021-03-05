@@ -5,8 +5,11 @@ import "geb-treasury-reimbursement/NoSetupIncreasingTreasuryReimbursement.sol";
 abstract contract DSValueLike {
     function getResultWithValidity() virtual external view returns (uint256, bool);
 }
+abstract contract FSMWrapperLike {
+    function renumerateCaller(address) virtual external;
+}
 
-contract DSM is NoSetupIncreasingTreasuryReimbursement {
+contract DSM {
     // --- Stop ---
     uint256 public stopped;
     modifier stoppable { require(stopped == 0, "DSM/is-stopped"); _; }
@@ -64,48 +67,8 @@ contract DSM is NoSetupIncreasingTreasuryReimbursement {
         emit ChangeDeviation(deviation);
     }
 
-    // --- Administration ---
-    /*
-    * @notify Modify a uint256 parameter
-    * @param parameter The parameter name
-    * @param val The new value for the parameter
-    */
-    function modifyParameters(bytes32 parameter, uint256 val) external isAuthorized {
-        if (parameter == "baseUpdateCallerReward") {
-          require(val < maxUpdateCallerReward, "DSM/invalid-base-caller-reward");
-          baseUpdateCallerReward = val;
-        }
-        else if (parameter == "maxUpdateCallerReward") {
-          require(val >= baseUpdateCallerReward, "DSM/invalid-max-reward");
-          maxUpdateCallerReward = val;
-        }
-        else if (parameter == "perSecondCallerRewardIncrease") {
-          require(val >= RAY, "DSM/invalid-reward-increase");
-          perSecondCallerRewardIncrease = val;
-        }
-        else if (parameter == "maxRewardIncreaseDelay") {
-          require(val > 0, "DSM/invalid-max-increase-delay");
-          maxRewardIncreaseDelay = val;
-        }
-        else revert("DSM/modify-unrecognized-param");
-        emit ModifyParameters(parameter, val);
-    }
-    /*
-    * @notify Modify an address parameter
-    * @param parameter The parameter name
-    * @param val The new value for the parameter
-    */
-    function modifyParameters(bytes32 parameter, address val) external isAuthorized {
-        if (parameter == "treasury") {
-          require(val != address(0), "DSM/invalid-treasury");
-          treasury = StabilityFeeTreasuryLike(val);
-        }
-        else revert("DSM/modify-unrecognized-param");
-        emit ModifyParameters(parameter, val);
-    }
-
     // --- Math ---
-    function add(uint64 x, uint64 y) internal pure returns (uint64 z) {
+    function addition(uint64 x, uint64 y) internal pure returns (uint64 z) {
         z = x + y;
         require(z >= x);
     }
@@ -184,21 +147,19 @@ contract DSM is NoSetupIncreasingTreasuryReimbursement {
     * @notify View function that returns whether the delay between calls has been passed
     */
     function passedDelay() public view returns (bool ok) {
-        return currentTime() >= uint(add(lastUpdateTime, uint64(updateDelay)));
+        return currentTime() >= uint(addition(lastUpdateTime, uint64(updateDelay)));
     }
 
     /*
     * @notify Update the price feeds inside the DSM
     */
-    function updateResult() external stoppable {
+    function updateResult() virtual external stoppable {
         // Check if the delay passed
         require(passedDelay(), "DSM/not-passed");
         // Read the price from the median
         (uint256 priceFeedValue, bool hasValidValue) = getPriceSourceUpdate();
         // If the value is valid, update storage
         if (hasValidValue) {
-            // Get the caller's reward
-            uint256 callerReward = getCallerReward(lastUpdateTime, updateDelay);
             // Update state
             currentFeed.isValid = nextFeed.isValid;
             currentFeed.value   = getNextBoundedPrice();
@@ -206,8 +167,6 @@ contract DSM is NoSetupIncreasingTreasuryReimbursement {
             lastUpdateTime      = latestUpdateTime(currentTime());
             // Emit event
             emit UpdateResult(uint(currentFeed.value), lastUpdateTime);
-            // Pay the caller
-            rewardCaller(msg.sender, callerReward);
         }
     }
 
@@ -273,5 +232,129 @@ contract DSM is NoSetupIncreasingTreasuryReimbursement {
     function read() external view returns (uint256) {
         require(currentFeed.isValid == 1, "DSM/no-current-value");
         return currentFeed.value;
+    }
+}
+
+contract SelfFundedDSM is DSM, NoSetupIncreasingTreasuryReimbursement {
+    constructor (address priceSource_, uint256 deviation) public DSM(priceSource_, deviation) {}
+
+    // --- Administration ---
+    /*
+    * @notify Modify a uint256 parameter
+    * @param parameter The parameter name
+    * @param val The new value for the parameter
+    */
+    function modifyParameters(bytes32 parameter, uint256 val) external isAuthorized {
+        if (parameter == "baseUpdateCallerReward") {
+          require(val < maxUpdateCallerReward, "SelfFundedDSM/invalid-base-caller-reward");
+          baseUpdateCallerReward = val;
+        }
+        else if (parameter == "maxUpdateCallerReward") {
+          require(val >= baseUpdateCallerReward, "SelfFundedDSM/invalid-max-reward");
+          maxUpdateCallerReward = val;
+        }
+        else if (parameter == "perSecondCallerRewardIncrease") {
+          require(val >= RAY, "SelfFundedDSM/invalid-reward-increase");
+          perSecondCallerRewardIncrease = val;
+        }
+        else if (parameter == "maxRewardIncreaseDelay") {
+          require(val > 0, "SelfFundedDSM/invalid-max-increase-delay");
+          maxRewardIncreaseDelay = val;
+        }
+        else revert("SelfFundedDSM/modify-unrecognized-param");
+        emit ModifyParameters(parameter, val);
+    }
+    /*
+    * @notify Modify an address parameter
+    * @param parameter The parameter name
+    * @param val The new value for the parameter
+    */
+    function modifyParameters(bytes32 parameter, address val) external isAuthorized {
+        if (parameter == "treasury") {
+          require(val != address(0), "SelfFundedDSM/invalid-treasury");
+          treasury = StabilityFeeTreasuryLike(val);
+        }
+        else revert("SelfFundedDSM/modify-unrecognized-param");
+        emit ModifyParameters(parameter, val);
+    }
+
+    // --- Core Logic ---
+    /*
+    * @notify Update the price feeds inside the DSM
+    */
+    function updateResult() external stoppable {
+        // Check if the delay passed
+        require(passedDelay(), "SelfFundedDSM/not-passed");
+        // Read the price from the median
+        (uint256 priceFeedValue, bool hasValidValue) = getPriceSourceUpdate();
+        // If the value is valid, update storage
+        if (hasValidValue) {
+            // Get the caller's reward
+            uint256 callerReward = getCallerReward(lastUpdateTime, updateDelay);
+            // Update state
+            currentFeed.isValid = nextFeed.isValid;
+            currentFeed.value   = getNextBoundedPrice();
+            nextFeed            = Feed(uint128(priceFeedValue), 1);
+            lastUpdateTime      = latestUpdateTime(currentTime());
+            // Emit event
+            emit UpdateResult(uint(currentFeed.value), lastUpdateTime);
+            // Pay the caller
+            rewardCaller(msg.sender, callerReward);
+        }
+    }
+}
+
+contract ExternallyFundedDSM is DSM {
+    // --- Variables ---
+    FSMWrapperLike public fsmWrapper;
+
+    // --- Evemts ---
+    event FailRenumerateCaller(address wrapper, address caller);
+
+    constructor (address priceSource_, address fsmWrapper_, uint256 deviation) public DSM(priceSource_, deviation) {
+        require(fsmWrapper_ != address(0), "ExternallyFundedDSM/null-fsm-wrapper");
+        fsmWrapper = new FSMWrapperLike(fsmWrapper_);
+        emit ModifyParameters("fsmWrapper", fsmWrapper_);
+    }
+
+    // --- Administration ---
+    /*
+    * @notify Modify an address parameter
+    * @param parameter The parameter name
+    * @param val The new value for the parameter
+    */
+    function modifyParameters(bytes32 parameter, address val) external isAuthorized {
+        if (parameter == "fsmWrapper") {
+          require(val != address(0), "ExternallyFundedDSM/invalid-fsm-wrapper");
+          fsmWrapper = new FSMWrapperLike(val);
+        }
+        else revert("ExternallyFundedDSM/modify-unrecognized-param");
+        emit ModifyParameters(parameter, val);
+    }
+
+    // --- Core Logic ---
+    /*
+    * @notify Update the price feeds inside the DSM
+    */
+    function updateResult() external stoppable {
+        // Check if the delay passed
+        require(passedDelay(), "ExternallyFundedDSM/not-passed");
+        // Read the price from the median
+        (uint256 priceFeedValue, bool hasValidValue) = getPriceSourceUpdate();
+        // If the value is valid, update storage
+        if (hasValidValue) {
+            // Update state
+            currentFeed.isValid = nextFeed.isValid;
+            currentFeed.value   = getNextBoundedPrice();
+            nextFeed            = Feed(uint128(priceFeedValue), 1);
+            lastUpdateTime      = latestUpdateTime(currentTime());
+            // Emit event
+            emit UpdateResult(uint(currentFeed.value), lastUpdateTime);
+            // Pay the caller
+            try fsmWrapper.renumerateCaller(msg.sender) {}
+            catch(bytes revertReason) {
+              emit FailRenumerateCaller(address(fsmWrapper), msg.sender);
+            }
+        }
     }
 }

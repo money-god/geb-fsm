@@ -5,8 +5,11 @@ import "geb-treasury-reimbursement/NoSetupIncreasingTreasuryReimbursement.sol";
 abstract contract DSValueLike {
     function getResultWithValidity() virtual external view returns (uint256, bool);
 }
+abstract contract FSMWrapperLike {
+    function renumerateCaller(address) virtual external;
+}
 
-contract OSM is NoSetupIncreasingTreasuryReimbursement {
+contract OSM {
     // --- Stop ---
     uint256 public stopped;
     modifier stoppable { require(stopped == 0, "OSM/is-stopped"); _; }
@@ -52,48 +55,8 @@ contract OSM is NoSetupIncreasingTreasuryReimbursement {
         emit ChangePriceSource(priceSource);
     }
 
-    // --- Administration ---
-    /*
-    * @notify Modify a uint256 parameter
-    * @param parameter The parameter name
-    * @param val The new value for the parameter
-    */
-    function modifyParameters(bytes32 parameter, uint256 val) external isAuthorized {
-        if (parameter == "baseUpdateCallerReward") {
-          require(val < maxUpdateCallerReward, "OSM/invalid-base-caller-reward");
-          baseUpdateCallerReward = val;
-        }
-        else if (parameter == "maxUpdateCallerReward") {
-          require(val >= baseUpdateCallerReward, "OSM/invalid-max-reward");
-          maxUpdateCallerReward = val;
-        }
-        else if (parameter == "perSecondCallerRewardIncrease") {
-          require(val >= RAY, "OSM/invalid-reward-increase");
-          perSecondCallerRewardIncrease = val;
-        }
-        else if (parameter == "maxRewardIncreaseDelay") {
-          require(val > 0, "OSM/invalid-max-increase-delay");
-          maxRewardIncreaseDelay = val;
-        }
-        else revert("OSM/modify-unrecognized-param");
-        emit ModifyParameters(parameter, val);
-    }
-    /*
-    * @notify Modify an address parameter
-    * @param parameter The parameter name
-    * @param val The new value for the parameter
-    */
-    function modifyParameters(bytes32 parameter, address val) external isAuthorized {
-        if (parameter == "treasury") {
-          require(val != address(0), "OSM/invalid-treasury");
-          treasury = StabilityFeeTreasuryLike(val);
-        }
-        else revert("OSM/modify-unrecognized-param");
-        emit ModifyParameters(parameter, val);
-    }
-
     // --- Math ---
-    function add(uint64 x, uint64 y) internal pure returns (uint64 z) {
+    function addition(uint64 x, uint64 y) internal pure returns (uint64 z) {
         z = x + y;
         require(z >= x);
     }
@@ -162,29 +125,25 @@ contract OSM is NoSetupIncreasingTreasuryReimbursement {
     * @notify View function that returns whether the delay between calls has been passed
     */
     function passedDelay() public view returns (bool ok) {
-        return currentTime() >= uint(add(lastUpdateTime, uint64(updateDelay)));
+        return currentTime() >= uint(addition(lastUpdateTime, uint64(updateDelay)));
     }
 
     /*
     * @notify Update the price feeds inside the OSM
     */
-    function updateResult() external stoppable {
+    function updateResult() virtual external stoppable {
         // Check if the delay passed
         require(passedDelay(), "OSM/not-passed");
         // Read the price from the median
         (uint256 priceFeedValue, bool hasValidValue) = getPriceSourceUpdate();
         // If the value is valid, update storage
         if (hasValidValue) {
-            // Get the caller's reward
-            uint256 callerReward = getCallerReward(lastUpdateTime, updateDelay);
             // Update state
-            currentFeed = nextFeed;
-            nextFeed = Feed(uint128(uint(priceFeedValue)), 1);
+            currentFeed    = nextFeed;
+            nextFeed       = Feed(uint128(uint(priceFeedValue)), 1);
             lastUpdateTime = latestUpdateTime(currentTime());
             // Emit event
             emit UpdateResult(uint(currentFeed.value), lastUpdateTime);
-            // Pay the caller
-            rewardCaller(msg.sender, callerReward);
         }
     }
 
@@ -218,5 +177,125 @@ contract OSM is NoSetupIncreasingTreasuryReimbursement {
     function read() external view returns (uint256) {
         require(currentFeed.isValid == 1, "OSM/no-current-value");
         return currentFeed.value;
+    }
+}
+
+contract SelfFundedOSM is OSM, NoSetupIncreasingTreasuryReimbursement {
+    constructor (address priceSource_) public OSM(priceSource_) {}
+
+    // --- Administration ---
+    /*
+    * @notify Modify a uint256 parameter
+    * @param parameter The parameter name
+    * @param val The new value for the parameter
+    */
+    function modifyParameters(bytes32 parameter, uint256 val) external isAuthorized {
+        if (parameter == "baseUpdateCallerReward") {
+          require(val < maxUpdateCallerReward, "SelfFundedOSM/invalid-base-caller-reward");
+          baseUpdateCallerReward = val;
+        }
+        else if (parameter == "maxUpdateCallerReward") {
+          require(val >= baseUpdateCallerReward, "SelfFundedOSM/invalid-max-reward");
+          maxUpdateCallerReward = val;
+        }
+        else if (parameter == "perSecondCallerRewardIncrease") {
+          require(val >= RAY, "SelfFundedOSM/invalid-reward-increase");
+          perSecondCallerRewardIncrease = val;
+        }
+        else if (parameter == "maxRewardIncreaseDelay") {
+          require(val > 0, "SelfFundedOSM/invalid-max-increase-delay");
+          maxRewardIncreaseDelay = val;
+        }
+        else revert("SelfFundedOSM/modify-unrecognized-param");
+        emit ModifyParameters(parameter, val);
+    }
+    /*
+    * @notify Modify an address parameter
+    * @param parameter The parameter name
+    * @param val The new value for the parameter
+    */
+    function modifyParameters(bytes32 parameter, address val) external isAuthorized {
+        if (parameter == "treasury") {
+          require(val != address(0), "SelfFundedOSM/invalid-treasury");
+          treasury = StabilityFeeTreasuryLike(val);
+        }
+        else revert("SelfFundedOSM/modify-unrecognized-param");
+        emit ModifyParameters(parameter, val);
+    }
+
+    /*
+    * @notify Update the price feeds inside the OSM
+    */
+    function updateResult() override external stoppable {
+        // Check if the delay passed
+        require(passedDelay(), "SelfFundedOSM/not-passed");
+        // Read the price from the median
+        (uint256 priceFeedValue, bool hasValidValue) = getPriceSourceUpdate();
+        // If the value is valid, update storage
+        if (hasValidValue) {
+            // Get the caller's reward
+            uint256 callerReward = getCallerReward(lastUpdateTime, updateDelay);
+            // Update state
+            currentFeed    = nextFeed;
+            nextFeed       = Feed(uint128(uint(priceFeedValue)), 1);
+            lastUpdateTime = latestUpdateTime(currentTime());
+            // Emit event
+            emit UpdateResult(uint(currentFeed.value), lastUpdateTime);
+            // Pay the caller
+            rewardCaller(msg.sender, callerReward);
+        }
+    }
+}
+
+contract ExternallyFundedOSM is OSM {
+    // --- Variables ---
+    FSMWrapperLike public fsmWrapper;
+
+    // --- Evemts ---
+    event FailRenumerateCaller(address wrapper, address caller);
+
+    constructor (address priceSource_, address fsmWrapper_) public OSM(priceSource_) {
+        require(fsmWrapper_ != address(0), "ExternallyFundedOSM/null-fsm-wrapper");
+        fsmWrapper = new FSMWrapperLike(fsmWrapper_);
+        emit ModifyParameters("fsmWrapper", fsmWrapper_);
+    }
+
+    // --- Administration ---
+    /*
+    * @notify Modify an address parameter
+    * @param parameter The parameter name
+    * @param val The new value for the parameter
+    */
+    function modifyParameters(bytes32 parameter, address val) external isAuthorized {
+        if (parameter == "fsmWrapper") {
+          require(val != address(0), "ExternallyFundedOSM/invalid-fsm-wrapper");
+          fsmWrapper = new FSMWrapperLike(val);
+        }
+        else revert("ExternallyFundedOSM/modify-unrecognized-param");
+        emit ModifyParameters(parameter, val);
+    }
+
+    /*
+    * @notify Update the price feeds inside the OSM
+    */
+    function updateResult() override external stoppable {
+        // Check if the delay passed
+        require(passedDelay(), "ExternallyFundedOSM/not-passed");
+        // Read the price from the median
+        (uint256 priceFeedValue, bool hasValidValue) = getPriceSourceUpdate();
+        // If the value is valid, update storage
+        if (hasValidValue) {
+            // Update state
+            currentFeed    = nextFeed;
+            nextFeed       = Feed(uint128(uint(priceFeedValue)), 1);
+            lastUpdateTime = latestUpdateTime(currentTime());
+            // Emit event
+            emit UpdateResult(uint(currentFeed.value), lastUpdateTime);
+            // Pay the caller
+            try fsmWrapper.renumerateCaller(msg.sender) {}
+            catch(bytes revertReason) {
+              emit FailRenumerateCaller(address(fsmWrapper), msg.sender);
+            }
+        }
     }
 }

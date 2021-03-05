@@ -1,4 +1,4 @@
-pragma solidity >=0.6.7;
+/* pragma solidity >=0.6.7;
 
 import "ds-test/test.sol";
 import {DSValue} from "ds-value/value.sol";
@@ -41,7 +41,7 @@ contract DSMTest is DSTest {
         // Create treasury
         treasury = new MockTreasury(address(coin));
         coin.transfer(address(treasury), initTokenAmount);
-    
+
         // pinger.setup(address(treasury), baseCallerReward, maxCallerReward, perSecondCallerRewardIncrease);
         dsm.modifyParameters("treasury", address(treasury));
         dsm.modifyParameters("maxUpdateCallerReward", maxCallerReward);
@@ -294,4 +294,4 @@ contract DSMTest is DSTest {
         assertEq(coin.balanceOf(address(this)), 0); // no payout
         assertEq(dsm.lastUpdateTime(), now - (now % dsm.updateDelay())); // still updates
     }
-}
+} */
