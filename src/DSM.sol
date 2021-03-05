@@ -1,6 +1,6 @@
 pragma solidity 0.6.7;
 
-import "geb-treasury-reimbursement/NoSetupIncreasingTreasuryReimbursement.sol";
+import "geb-treasury-reimbursement/NoSetupNoAuthIncreasingTreasuryReimbursement.sol";
 
 abstract contract DSValueLike {
     function getResultWithValidity() virtual external view returns (uint256, bool);
@@ -10,6 +10,32 @@ abstract contract FSMWrapperLike {
 }
 
 contract DSM {
+    // --- Auth ---
+    mapping (address => uint) public authorizedAccounts;
+    /**
+     * @notice Add auth to an account
+     * @param account Account to add auth to
+     */
+    function addAuthorization(address account) virtual external isAuthorized {
+        authorizedAccounts[account] = 1;
+        emit AddAuthorization(account);
+    }
+    /**
+     * @notice Remove auth from an account
+     * @param account Account to remove auth from
+     */
+    function removeAuthorization(address account) virtual external isAuthorized {
+        authorizedAccounts[account] = 0;
+        emit RemoveAuthorization(account);
+    }
+    /**
+    * @notice Checks whether msg.sender can call an authed function
+    **/
+    modifier isAuthorized {
+        require(authorizedAccounts[msg.sender] == 1, "DSM/account-not-authorized");
+        _;
+    }
+
     // --- Stop ---
     uint256 public stopped;
     modifier stoppable { require(stopped == 0, "DSM/is-stopped"); _; }
@@ -32,6 +58,8 @@ contract DSM {
     Feed nextFeed;
 
     // --- Events ---
+    event AddAuthorization(address account);
+    event RemoveAuthorization(address account);
     event ModifyParameters(bytes32 parameter, uint256 val);
     event ModifyParameters(bytes32 parameter, address val);
     event Start();
@@ -43,7 +71,7 @@ contract DSM {
     event UpdateResult(uint256 newMedian, uint256 lastUpdateTime);
 
     constructor (address priceSource_, uint256 deviation) public {
-        require(both(deviation > 0, deviation < WAD), "DSM/invalid-deviation");
+        require(deviation > 0 && deviation < WAD, "DSM/invalid-deviation");
 
         authorizedAccounts[msg.sender] = 1;
 
@@ -68,9 +96,21 @@ contract DSM {
     }
 
     // --- Math ---
+    uint256 private constant WAD = 10 ** 18;
+
     function addition(uint64 x, uint64 y) internal pure returns (uint64 z) {
         z = x + y;
         require(z >= x);
+    }
+    function sub(uint x, uint y) private pure returns (uint z) {
+        z = x - y;
+        require(z <= x, "uint-uint-sub-underflow");
+    }
+    function mul(uint x, uint y) private pure returns (uint z) {
+        require(y == 0 || (z = x * y) / y == x, "uint-uint-mul-overflow");
+    }
+    function wmul(uint x, uint y) private pure returns (uint z) {
+        z = mul(x, y) / WAD;
     }
 
     // --- Core Logic ---
@@ -119,7 +159,7 @@ contract DSM {
     * @param deviation Allowed deviation for the next price compared to the current one
     */
     function changeNextPriceDeviation(uint deviation) external isAuthorized {
-        require(both(deviation > 0, deviation < WAD), "DSM/invalid-deviation");
+        require(deviation > 0 && deviation < WAD, "DSM/invalid-deviation");
         newPriceDeviation = deviation;
         emit ChangeDeviation(deviation);
     }
@@ -190,8 +230,8 @@ contract DSM {
         boundedPrice = nextFeed.value;
         if (currentFeed.value == 0) return boundedPrice;
 
-        uint128 lowerBound = uint128(wmultiply(uint(currentFeed.value), newPriceDeviation));
-        uint128 upperBound = uint128(wmultiply(uint(currentFeed.value), subtract(multiply(uint(2), WAD), newPriceDeviation)));
+        uint128 lowerBound = uint128(wmul(uint(currentFeed.value), newPriceDeviation));
+        uint128 upperBound = uint128(wmul(uint(currentFeed.value), sub(mul(uint(2), WAD), newPriceDeviation)));
 
         if (nextFeed.value < lowerBound) {
           boundedPrice = lowerBound;
@@ -204,14 +244,14 @@ contract DSM {
     * @notify Returns the lower bound for the upcoming price (taking into account the deviation var)
     */
     function getNextPriceLowerBound() public view returns (uint128) {
-        return uint128(wmultiply(uint(currentFeed.value), newPriceDeviation));
+        return uint128(wmul(uint(currentFeed.value), newPriceDeviation));
     }
 
     /*
     * @notify Returns the upper bound for the upcoming price (taking into account the deviation var)
     */
     function getNextPriceUpperBound() public view returns (uint128) {
-        return uint128(wmultiply(uint(currentFeed.value), subtract(multiply(uint(2), WAD), newPriceDeviation)));
+        return uint128(wmul(uint(currentFeed.value), sub(mul(uint(2), WAD), newPriceDeviation)));
     }
 
     /*
@@ -235,7 +275,7 @@ contract DSM {
     }
 }
 
-contract SelfFundedDSM is DSM, NoSetupIncreasingTreasuryReimbursement {
+contract SelfFundedDSM is DSM, NoSetupNoAuthIncreasingTreasuryReimbursement {
     constructor (address priceSource_, uint256 deviation) public DSM(priceSource_, deviation) {}
 
     // --- Administration ---
@@ -282,7 +322,7 @@ contract SelfFundedDSM is DSM, NoSetupIncreasingTreasuryReimbursement {
     /*
     * @notify Update the price feeds inside the DSM
     */
-    function updateResult() external stoppable {
+    function updateResult() override external stoppable {
         // Check if the delay passed
         require(passedDelay(), "SelfFundedDSM/not-passed");
         // Read the price from the median
@@ -313,7 +353,7 @@ contract ExternallyFundedDSM is DSM {
 
     constructor (address priceSource_, address fsmWrapper_, uint256 deviation) public DSM(priceSource_, deviation) {
         require(fsmWrapper_ != address(0), "ExternallyFundedDSM/null-fsm-wrapper");
-        fsmWrapper = new FSMWrapperLike(fsmWrapper_);
+        fsmWrapper = FSMWrapperLike(fsmWrapper_);
         emit ModifyParameters("fsmWrapper", fsmWrapper_);
     }
 
@@ -326,7 +366,7 @@ contract ExternallyFundedDSM is DSM {
     function modifyParameters(bytes32 parameter, address val) external isAuthorized {
         if (parameter == "fsmWrapper") {
           require(val != address(0), "ExternallyFundedDSM/invalid-fsm-wrapper");
-          fsmWrapper = new FSMWrapperLike(val);
+          fsmWrapper = FSMWrapperLike(val);
         }
         else revert("ExternallyFundedDSM/modify-unrecognized-param");
         emit ModifyParameters(parameter, val);
@@ -336,7 +376,7 @@ contract ExternallyFundedDSM is DSM {
     /*
     * @notify Update the price feeds inside the DSM
     */
-    function updateResult() external stoppable {
+    function updateResult() override external stoppable {
         // Check if the delay passed
         require(passedDelay(), "ExternallyFundedDSM/not-passed");
         // Read the price from the median
@@ -352,7 +392,7 @@ contract ExternallyFundedDSM is DSM {
             emit UpdateResult(uint(currentFeed.value), lastUpdateTime);
             // Pay the caller
             try fsmWrapper.renumerateCaller(msg.sender) {}
-            catch(bytes revertReason) {
+            catch(bytes memory revertReason) {
               emit FailRenumerateCaller(address(fsmWrapper), msg.sender);
             }
         }

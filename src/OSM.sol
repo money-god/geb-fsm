@@ -1,6 +1,6 @@
 pragma solidity 0.6.7;
 
-import "geb-treasury-reimbursement/NoSetupIncreasingTreasuryReimbursement.sol";
+import "geb-treasury-reimbursement/NoSetupNoAuthIncreasingTreasuryReimbursement.sol";
 
 abstract contract DSValueLike {
     function getResultWithValidity() virtual external view returns (uint256, bool);
@@ -10,6 +10,32 @@ abstract contract FSMWrapperLike {
 }
 
 contract OSM {
+    // --- Auth ---
+    mapping (address => uint) public authorizedAccounts;
+    /**
+     * @notice Add auth to an account
+     * @param account Account to add auth to
+     */
+    function addAuthorization(address account) virtual external isAuthorized {
+        authorizedAccounts[account] = 1;
+        emit AddAuthorization(account);
+    }
+    /**
+     * @notice Remove auth from an account
+     * @param account Account to remove auth from
+     */
+    function removeAuthorization(address account) virtual external isAuthorized {
+        authorizedAccounts[account] = 0;
+        emit RemoveAuthorization(account);
+    }
+    /**
+    * @notice Checks whether msg.sender can call an authed function
+    **/
+    modifier isAuthorized {
+        require(authorizedAccounts[msg.sender] == 1, "OSM/account-not-authorized");
+        _;
+    }
+
     // --- Stop ---
     uint256 public stopped;
     modifier stoppable { require(stopped == 0, "OSM/is-stopped"); _; }
@@ -30,6 +56,8 @@ contract OSM {
     Feed nextFeed;
 
     // --- Events ---
+    event AddAuthorization(address account);
+    event RemoveAuthorization(address account);
     event ModifyParameters(bytes32 parameter, uint256 val);
     event ModifyParameters(bytes32 parameter, address val);
     event Start();
@@ -180,7 +208,7 @@ contract OSM {
     }
 }
 
-contract SelfFundedOSM is OSM, NoSetupIncreasingTreasuryReimbursement {
+contract SelfFundedOSM is OSM, NoSetupNoAuthIncreasingTreasuryReimbursement {
     constructor (address priceSource_) public OSM(priceSource_) {}
 
     // --- Administration ---
@@ -256,7 +284,7 @@ contract ExternallyFundedOSM is OSM {
 
     constructor (address priceSource_, address fsmWrapper_) public OSM(priceSource_) {
         require(fsmWrapper_ != address(0), "ExternallyFundedOSM/null-fsm-wrapper");
-        fsmWrapper = new FSMWrapperLike(fsmWrapper_);
+        fsmWrapper = FSMWrapperLike(fsmWrapper_);
         emit ModifyParameters("fsmWrapper", fsmWrapper_);
     }
 
@@ -269,7 +297,7 @@ contract ExternallyFundedOSM is OSM {
     function modifyParameters(bytes32 parameter, address val) external isAuthorized {
         if (parameter == "fsmWrapper") {
           require(val != address(0), "ExternallyFundedOSM/invalid-fsm-wrapper");
-          fsmWrapper = new FSMWrapperLike(val);
+          fsmWrapper = FSMWrapperLike(val);
         }
         else revert("ExternallyFundedOSM/modify-unrecognized-param");
         emit ModifyParameters(parameter, val);
@@ -293,7 +321,7 @@ contract ExternallyFundedOSM is OSM {
             emit UpdateResult(uint(currentFeed.value), lastUpdateTime);
             // Pay the caller
             try fsmWrapper.renumerateCaller(msg.sender) {}
-            catch(bytes revertReason) {
+            catch(bytes memory revertReason) {
               emit FailRenumerateCaller(address(fsmWrapper), msg.sender);
             }
         }
