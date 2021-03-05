@@ -95,10 +95,10 @@ contract DSM {
         emit ChangeDeviation(deviation);
     }
 
-    // --- Math ---
+    // --- DSM Specific Math ---
     uint256 private constant WAD = 10 ** 18;
 
-    function addition(uint64 x, uint64 y) internal pure returns (uint64 z) {
+    function add(uint64 x, uint64 y) internal pure returns (uint64 z) {
         z = x + y;
         require(z >= x);
     }
@@ -187,7 +187,7 @@ contract DSM {
     * @notify View function that returns whether the delay between calls has been passed
     */
     function passedDelay() public view returns (bool ok) {
-        return currentTime() >= uint(addition(lastUpdateTime, uint64(updateDelay)));
+        return currentTime() >= uint(add(lastUpdateTime, uint64(updateDelay)));
     }
 
     /*
