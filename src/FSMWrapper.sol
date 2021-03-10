@@ -1,6 +1,6 @@
 pragma solidity 0.6.7;
 
-import "geb-treasury-reimbursement/NoSetupIncreasingTreasuryReimbursement.sol";
+import "geb-treasury-reimbursement/reimbursement/NoSetupIncreasingTreasuryReimbursement.sol";
 
 abstract contract FSMLike {
     function stopped() virtual public view returns (uint256);
@@ -44,7 +44,6 @@ contract FSMWrapper is NoSetupIncreasingTreasuryReimbursement {
     function modifyParameters(bytes32 parameter, address addr) external isAuthorized {
         require(addr != address(0), "FSMWrapper/null-addr");
         if (parameter == "fsm") {
-          require(addr != address(0), "FSMWrapper/null-fsm");
           fsm = FSMLike(addr);
         }
         else if (parameter == "treasury") {
