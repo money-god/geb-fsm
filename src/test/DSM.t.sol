@@ -559,6 +559,8 @@ contract ExternallyFundedDSMTest is DSTest {
         wrapper.modifyParameters("fsm", address(0x1));          //change the fsm in the wrapper
         dsm.updateResult();                                     //set new current and next dsm value
         assertEq(coin.balanceOf(address(this)), 0);             //no reward received
+        assertTrue(wrapper.lastReimburseTime() != now);
+        assertEq(dsm.lastUpdateTime(), now);
     }
 
     function burnCoinBalance() internal {
