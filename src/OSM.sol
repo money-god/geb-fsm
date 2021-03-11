@@ -282,11 +282,7 @@ contract ExternallyFundedOSM is OSM {
     // --- Evemts ---
     event FailRenumerateCaller(address wrapper, address caller);
 
-    constructor (address priceSource_, address fsmWrapper_) public OSM(priceSource_) {
-        require(fsmWrapper_ != address(0), "ExternallyFundedOSM/null-fsm-wrapper");
-        fsmWrapper = FSMWrapperLike(fsmWrapper_);
-        emit ModifyParameters("fsmWrapper", fsmWrapper_);
-    }
+    constructor (address priceSource_) public OSM(priceSource_) {}
 
     // --- Administration ---
     /*
@@ -309,6 +305,8 @@ contract ExternallyFundedOSM is OSM {
     function updateResult() override external stoppable {
         // Check if the delay passed
         require(passedDelay(), "ExternallyFundedOSM/not-passed");
+        // Check that the wrapper is set
+        require(address(fsmWrapper) != address(0), "ExternallyFundedOSM/null-wrapper");
         // Read the price from the median
         (uint256 priceFeedValue, bool hasValidValue) = getPriceSourceUpdate();
         // If the value is valid, update storage

@@ -346,16 +346,13 @@ contract SelfFundedDSM is DSM, NoSetupNoAuthIncreasingTreasuryReimbursement {
 
 contract ExternallyFundedDSM is DSM {
     // --- Variables ---
+    // The wrapper for this DSM. It can relay treasury rewards
     FSMWrapperLike public fsmWrapper;
 
     // --- Evemts ---
     event FailRenumerateCaller(address wrapper, address caller);
 
-    constructor (address priceSource_, address fsmWrapper_, uint256 deviation) public DSM(priceSource_, deviation) {
-        require(fsmWrapper_ != address(0), "ExternallyFundedDSM/null-fsm-wrapper");
-        fsmWrapper = FSMWrapperLike(fsmWrapper_);
-        emit ModifyParameters("fsmWrapper", fsmWrapper_);
-    }
+    constructor (address priceSource_, uint256 deviation) public DSM(priceSource_, deviation) {}
 
     // --- Administration ---
     /*
@@ -379,6 +376,8 @@ contract ExternallyFundedDSM is DSM {
     function updateResult() override external stoppable {
         // Check if the delay passed
         require(passedDelay(), "ExternallyFundedDSM/not-passed");
+        // Check that the wrapper is set
+        require(address(fsmWrapper) != address(0), "ExternallyFundedDSM/null-wrapper");
         // Read the price from the median
         (uint256 priceFeedValue, bool hasValidValue) = getPriceSourceUpdate();
         // If the value is valid, update storage
