@@ -1,6 +1,6 @@
 pragma solidity 0.6.7;
 
-import "geb-treasury-reimbursement/reimbursement/NoSetupIncreasingTreasuryReimbursement.sol";
+import "geb-treasury-reimbursement/reimbursement/single/NoSetupIncreasingTreasuryReimbursement.sol";
 
 abstract contract FSMLike {
     function stopped() virtual public view returns (uint256);

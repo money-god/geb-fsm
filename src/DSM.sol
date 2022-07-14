@@ -1,6 +1,6 @@
 pragma solidity 0.6.7;
 
-import "geb-treasury-reimbursement/reimbursement/NoSetupNoAuthIncreasingTreasuryReimbursement.sol";
+import "geb-treasury-reimbursement/reimbursement/single/NoSetupNoAuthIncreasingTreasuryReimbursement.sol";
 
 abstract contract DSValueLike {
     function getResultWithValidity() virtual external view returns (uint256, bool);
