@@ -1,0 +1,924 @@
+{
+  "_format": "ethers-rs-sol-cache-3",
+  "paths": {
+    "artifacts": "out",
+    "sources": "src",
+    "tests": "test",
+    "libraries": [
+      "lib"
+    ]
+  },
+  "files": {
+    "lib/ds-stop/lib/ds-auth/src/auth.sol": {
+      "lastModificationDate": 1657763687620,
+      "contentHash": "8c01a8e97f2125dc1916eff23852b7cf",
+      "sourceName": "lib/ds-stop/lib/ds-auth/src/auth.sol",
+      "solcConfig": {
+        "settings": {
+          "optimizer": {
+            "enabled": true,
+            "runs": 200
+          },
+          "metadata": {
+            "bytecodeHash": "ipfs"
+          },
+          "outputSelection": {
+            "*": {
+              "": [
+                "ast"
+              ],
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers"
+              ]
+            }
+          },
+          "evmVersion": "london",
+          "libraries": {}
+        }
+      },
+      "imports": [],
+      "versionRequirement": ">=0.6.7",
+      "artifacts": {
+        "DSAuth": {
+          "0.6.7+commit.b8d736ae.Darwin.appleclang": "auth.sol/DSAuth.json"
+        },
+        "DSAuthEvents": {
+          "0.6.7+commit.b8d736ae.Darwin.appleclang": "auth.sol/DSAuthEvents.json"
+        },
+        "DSAuthority": {
+          "0.6.7+commit.b8d736ae.Darwin.appleclang": "auth.sol/DSAuthority.json"
+        }
+      }
+    },
+    "lib/ds-stop/lib/ds-note/src/note.sol": {
+      "lastModificationDate": 1657763689614,
+      "contentHash": "cff077720b1444b4e848afcabf67cc2d",
+      "sourceName": "lib/ds-stop/lib/ds-note/src/note.sol",
+      "solcConfig": {
+        "settings": {
+          "optimizer": {
+            "enabled": true,
+            "runs": 200
+          },
+          "metadata": {
+            "bytecodeHash": "ipfs"
+          },
+          "outputSelection": {
+            "*": {
+              "": [
+                "ast"
+              ],
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers"
+              ]
+            }
+          },
+          "evmVersion": "london",
+          "libraries": {}
+        }
+      },
+      "imports": [],
+      "versionRequirement": ">=0.4.23",
+      "artifacts": {
+        "DSNote": {
+          "0.6.7+commit.b8d736ae.Darwin.appleclang": "note.sol/DSNote.json"
+        }
+      }
+    },
+    "lib/ds-stop/src/stop.sol": {
+      "lastModificationDate": 1657763685055,
+      "contentHash": "6ab15ee97d2d16971c1eb621fbb73fa8",
+      "sourceName": "lib/ds-stop/src/stop.sol",
+      "solcConfig": {
+        "settings": {
+          "optimizer": {
+            "enabled": true,
+            "runs": 200
+          },
+          "metadata": {
+            "bytecodeHash": "ipfs"
+          },
+          "outputSelection": {
+            "*": {
+              "": [
+                "ast"
+              ],
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers"
+              ]
+            }
+          },
+          "evmVersion": "london",
+          "libraries": {}
+        }
+      },
+      "imports": [
+        "lib/ds-stop/lib/ds-auth/src/auth.sol",
+        "lib/ds-stop/lib/ds-note/src/note.sol"
+      ],
+      "versionRequirement": ">=0.4.23",
+      "artifacts": {
+        "DSStop": {
+          "0.6.7+commit.b8d736ae.Darwin.appleclang": "stop.sol/DSStop.json"
+        }
+      }
+    },
+    "lib/ds-token/lib/ds-math/src/math.sol": {
+      "lastModificationDate": 1657763695476,
+      "contentHash": "8c550fcfa8bd4f7feb87aaf59c230caf",
+      "sourceName": "lib/ds-token/lib/ds-math/src/math.sol",
+      "solcConfig": {
+        "settings": {
+          "optimizer": {
+            "enabled": true,
+            "runs": 200
+          },
+          "metadata": {
+            "bytecodeHash": "ipfs"
+          },
+          "outputSelection": {
+            "*": {
+              "": [
+                "ast"
+              ],
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers"
+              ]
+            }
+          },
+          "evmVersion": "london",
+          "libraries": {}
+        }
+      },
+      "imports": [],
+      "versionRequirement": ">0.4.13",
+      "artifacts": {
+        "DSMath": {
+          "0.6.7+commit.b8d736ae.Darwin.appleclang": "math.sol/DSMath.json"
+        }
+      }
+    },
+    "lib/ds-token/lib/ds-test/src/test.sol": {
+      "lastModificationDate": 1657763704983,
+      "contentHash": "962996f0e05d5218857a538a62d7c47e",
+      "sourceName": "lib/ds-token/lib/ds-test/src/test.sol",
+      "solcConfig": {
+        "settings": {
+          "optimizer": {
+            "enabled": true,
+            "runs": 200
+          },
+          "metadata": {
+            "bytecodeHash": "ipfs"
+          },
+          "outputSelection": {
+            "*": {
+              "": [
+                "ast"
+              ],
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers"
+              ]
+            }
+          },
+          "evmVersion": "london",
+          "libraries": {}
+        }
+      },
+      "imports": [],
+      "versionRequirement": ">=0.5.0",
+      "artifacts": {
+        "DSTest": {
+          "0.6.7+commit.b8d736ae.Darwin.appleclang": "test.sol/DSTest.json"
+        }
+      }
+    },
+    "lib/ds-token/lib/erc20/src/erc20.sol": {
+      "lastModificationDate": 1657763705660,
+      "contentHash": "91b67c77828ed3dad97bd48a2daaa1d3",
+      "sourceName": "lib/ds-token/lib/erc20/src/erc20.sol",
+      "solcConfig": {
+        "settings": {
+          "optimizer": {
+            "enabled": true,
+            "runs": 200
+          },
+          "metadata": {
+            "bytecodeHash": "ipfs"
+          },
+          "outputSelection": {
+            "*": {
+              "": [
+                "ast"
+              ],
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers"
+              ]
+            }
+          },
+          "evmVersion": "london",
+          "libraries": {}
+        }
+      },
+      "imports": [],
+      "versionRequirement": ">0.4.20",
+      "artifacts": {
+        "ERC20": {
+          "0.6.7+commit.b8d736ae.Darwin.appleclang": "erc20.sol/ERC20.json"
+        },
+        "ERC20Events": {
+          "0.6.7+commit.b8d736ae.Darwin.appleclang": "erc20.sol/ERC20Events.json"
+        }
+      }
+    },
+    "lib/ds-token/src/base.sol": {
+      "lastModificationDate": 1657763692221,
+      "contentHash": "509d1a034cf86ed3a0167e16df1cb926",
+      "sourceName": "lib/ds-token/src/base.sol",
+      "solcConfig": {
+        "settings": {
+          "optimizer": {
+            "enabled": true,
+            "runs": 200
+          },
+          "metadata": {
+            "bytecodeHash": "ipfs"
+          },
+          "outputSelection": {
+            "*": {
+              "": [
+                "ast"
+              ],
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers"
+              ]
+            }
+          },
+          "evmVersion": "london",
+          "libraries": {}
+        }
+      },
+      "imports": [
+        "lib/ds-token/lib/ds-math/src/math.sol",
+        "lib/ds-token/lib/erc20/src/erc20.sol"
+      ],
+      "versionRequirement": ">=0.4.23, <0.7.0",
+      "artifacts": {
+        "DSTokenBase": {
+          "0.6.7+commit.b8d736ae.Darwin.appleclang": "base.sol/DSTokenBase.json"
+        }
+      }
+    },
+    "lib/ds-token/src/token.sol": {
+      "lastModificationDate": 1657763692221,
+      "contentHash": "8744c7ddc9dfc48730487317f2bb6088",
+      "sourceName": "lib/ds-token/src/token.sol",
+      "solcConfig": {
+        "settings": {
+          "optimizer": {
+            "enabled": true,
+            "runs": 200
+          },
+          "metadata": {
+            "bytecodeHash": "ipfs"
+          },
+          "outputSelection": {
+            "*": {
+              "": [
+                "ast"
+              ],
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers"
+              ]
+            }
+          },
+          "evmVersion": "london",
+          "libraries": {}
+        }
+      },
+      "imports": [
+        "lib/ds-stop/lib/ds-auth/src/auth.sol",
+        "lib/ds-stop/lib/ds-note/src/note.sol",
+        "lib/ds-stop/src/stop.sol",
+        "lib/ds-token/lib/ds-math/src/math.sol",
+        "lib/ds-token/lib/erc20/src/erc20.sol",
+        "lib/ds-token/src/base.sol"
+      ],
+      "versionRequirement": ">=0.4.23, <0.7.0",
+      "artifacts": {
+        "DSToken": {
+          "0.6.7+commit.b8d736ae.Darwin.appleclang": "token.sol/DSToken.json"
+        }
+      }
+    },
+    "lib/ds-value/lib/ds-thing/src/thing.sol": {
+      "lastModificationDate": 1657763709106,
+      "contentHash": "86284ef7881711ffd6f4003f43d0c06a",
+      "sourceName": "lib/ds-value/lib/ds-thing/src/thing.sol",
+      "solcConfig": {
+        "settings": {
+          "optimizer": {
+            "enabled": true,
+            "runs": 200
+          },
+          "metadata": {
+            "bytecodeHash": "ipfs"
+          },
+          "outputSelection": {
+            "*": {
+              "": [
+                "ast"
+              ],
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers"
+              ]
+            }
+          },
+          "evmVersion": "london",
+          "libraries": {}
+        }
+      },
+      "imports": [
+        "lib/ds-stop/lib/ds-auth/src/auth.sol",
+        "lib/ds-stop/lib/ds-note/src/note.sol"
+      ],
+      "versionRequirement": ">=0.4.23",
+      "artifacts": {
+        "DSMath": {
+          "0.6.7+commit.b8d736ae.Darwin.appleclang": "thing.sol/DSMath.json"
+        },
+        "DSThing": {
+          "0.6.7+commit.b8d736ae.Darwin.appleclang": "thing.sol/DSThing.json"
+        }
+      }
+    },
+    "lib/ds-value/src/value.sol": {
+      "lastModificationDate": 1657763706292,
+      "contentHash": "4b45e447ec5c82db3ffb69b09825748b",
+      "sourceName": "lib/ds-value/src/value.sol",
+      "solcConfig": {
+        "settings": {
+          "optimizer": {
+            "enabled": true,
+            "runs": 200
+          },
+          "metadata": {
+            "bytecodeHash": "ipfs"
+          },
+          "outputSelection": {
+            "*": {
+              "": [
+                "ast"
+              ],
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers"
+              ]
+            }
+          },
+          "evmVersion": "london",
+          "libraries": {}
+        }
+      },
+      "imports": [
+        "lib/ds-stop/lib/ds-auth/src/auth.sol",
+        "lib/ds-stop/lib/ds-note/src/note.sol",
+        "lib/ds-value/lib/ds-thing/src/thing.sol"
+      ],
+      "versionRequirement": ">=0.4.23",
+      "artifacts": {
+        "DSValue": {
+          "0.6.7+commit.b8d736ae.Darwin.appleclang": "value.sol/DSValue.json"
+        }
+      }
+    },
+    "lib/geb-treasury-reimbursement/src/math/GebMath.sol": {
+      "lastModificationDate": 1657763716484,
+      "contentHash": "b6f9d54d65c4c8982151f848a607b9a8",
+      "sourceName": "lib/geb-treasury-reimbursement/src/math/GebMath.sol",
+      "solcConfig": {
+        "settings": {
+          "optimizer": {
+            "enabled": true,
+            "runs": 200
+          },
+          "metadata": {
+            "bytecodeHash": "ipfs"
+          },
+          "outputSelection": {
+            "*": {
+              "": [
+                "ast"
+              ],
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers"
+              ]
+            }
+          },
+          "evmVersion": "london",
+          "libraries": {}
+        }
+      },
+      "imports": [],
+      "versionRequirement": "=0.6.7",
+      "artifacts": {
+        "GebMath": {
+          "0.6.7+commit.b8d736ae.Darwin.appleclang": "GebMath.sol/GebMath.json"
+        }
+      }
+    },
+    "lib/geb-treasury-reimbursement/src/reimbursement/single/NoSetupIncreasingTreasuryReimbursement.sol": {
+      "lastModificationDate": 1657763716484,
+      "contentHash": "b98e91b03f62b42256d594bbf8c728ff",
+      "sourceName": "lib/geb-treasury-reimbursement/src/reimbursement/single/NoSetupIncreasingTreasuryReimbursement.sol",
+      "solcConfig": {
+        "settings": {
+          "optimizer": {
+            "enabled": true,
+            "runs": 200
+          },
+          "metadata": {
+            "bytecodeHash": "ipfs"
+          },
+          "outputSelection": {
+            "*": {
+              "": [
+                "ast"
+              ],
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers"
+              ]
+            }
+          },
+          "evmVersion": "london",
+          "libraries": {}
+        }
+      },
+      "imports": [
+        "lib/geb-treasury-reimbursement/src/math/GebMath.sol"
+      ],
+      "versionRequirement": "=0.6.7",
+      "artifacts": {
+        "NoSetupIncreasingTreasuryReimbursement": {
+          "0.6.7+commit.b8d736ae.Darwin.appleclang": "NoSetupIncreasingTreasuryReimbursement.sol/NoSetupIncreasingTreasuryReimbursement.json"
+        },
+        "StabilityFeeTreasuryLike": {
+          "0.6.7+commit.b8d736ae.Darwin.appleclang": "NoSetupIncreasingTreasuryReimbursement.sol/StabilityFeeTreasuryLike.json"
+        }
+      }
+    },
+    "lib/geb-treasury-reimbursement/src/reimbursement/single/NoSetupNoAuthIncreasingTreasuryReimbursement.sol": {
+      "lastModificationDate": 1657763716485,
+      "contentHash": "b1a49678dd7d08d6a9ab7a8edf1bb5f6",
+      "sourceName": "lib/geb-treasury-reimbursement/src/reimbursement/single/NoSetupNoAuthIncreasingTreasuryReimbursement.sol",
+      "solcConfig": {
+        "settings": {
+          "optimizer": {
+            "enabled": true,
+            "runs": 200
+          },
+          "metadata": {
+            "bytecodeHash": "ipfs"
+          },
+          "outputSelection": {
+            "*": {
+              "": [
+                "ast"
+              ],
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers"
+              ]
+            }
+          },
+          "evmVersion": "london",
+          "libraries": {}
+        }
+      },
+      "imports": [
+        "lib/geb-treasury-reimbursement/src/math/GebMath.sol"
+      ],
+      "versionRequirement": "=0.6.7",
+      "artifacts": {
+        "NoSetupNoAuthIncreasingTreasuryReimbursement": {
+          "0.6.7+commit.b8d736ae.Darwin.appleclang": "NoSetupNoAuthIncreasingTreasuryReimbursement.sol/NoSetupNoAuthIncreasingTreasuryReimbursement.json"
+        },
+        "StabilityFeeTreasuryLike": {
+          "0.6.7+commit.b8d736ae.Darwin.appleclang": "NoSetupNoAuthIncreasingTreasuryReimbursement.sol/StabilityFeeTreasuryLike.json"
+        }
+      }
+    },
+    "src/DSM.sol": {
+      "lastModificationDate": 1657763847485,
+      "contentHash": "47220ac1ccc0de6b7b0344a50ce4a2f8",
+      "sourceName": "src/DSM.sol",
+      "solcConfig": {
+        "settings": {
+          "optimizer": {
+            "enabled": true,
+            "runs": 200
+          },
+          "metadata": {
+            "bytecodeHash": "ipfs"
+          },
+          "outputSelection": {
+            "*": {
+              "": [
+                "ast"
+              ],
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers"
+              ]
+            }
+          },
+          "evmVersion": "london",
+          "libraries": {}
+        }
+      },
+      "imports": [
+        "lib/geb-treasury-reimbursement/src/math/GebMath.sol",
+        "lib/geb-treasury-reimbursement/src/reimbursement/single/NoSetupNoAuthIncreasingTreasuryReimbursement.sol"
+      ],
+      "versionRequirement": "=0.6.7",
+      "artifacts": {
+        "DSM": {
+          "0.6.7+commit.b8d736ae.Darwin.appleclang": "DSM.sol/DSM.json"
+        },
+        "DSValueLike": {
+          "0.6.7+commit.b8d736ae.Darwin.appleclang": "DSM.sol/DSValueLike.json"
+        },
+        "ExternallyFundedDSM": {
+          "0.6.7+commit.b8d736ae.Darwin.appleclang": "DSM.sol/ExternallyFundedDSM.json"
+        },
+        "FSMWrapperLike": {
+          "0.6.7+commit.b8d736ae.Darwin.appleclang": "DSM.sol/FSMWrapperLike.json"
+        },
+        "SelfFundedDSM": {
+          "0.6.7+commit.b8d736ae.Darwin.appleclang": "DSM.sol/SelfFundedDSM.json"
+        }
+      }
+    },
+    "src/FSMWrapper.sol": {
+      "lastModificationDate": 1657763853172,
+      "contentHash": "28e6b94ec902dd53d9ccd36af10f2ac4",
+      "sourceName": "src/FSMWrapper.sol",
+      "solcConfig": {
+        "settings": {
+          "optimizer": {
+            "enabled": true,
+            "runs": 200
+          },
+          "metadata": {
+            "bytecodeHash": "ipfs"
+          },
+          "outputSelection": {
+            "*": {
+              "": [
+                "ast"
+              ],
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers"
+              ]
+            }
+          },
+          "evmVersion": "london",
+          "libraries": {}
+        }
+      },
+      "imports": [
+        "lib/geb-treasury-reimbursement/src/math/GebMath.sol",
+        "lib/geb-treasury-reimbursement/src/reimbursement/single/NoSetupIncreasingTreasuryReimbursement.sol"
+      ],
+      "versionRequirement": "=0.6.7",
+      "artifacts": {
+        "FSMLike": {
+          "0.6.7+commit.b8d736ae.Darwin.appleclang": "FSMWrapper.sol/FSMLike.json"
+        },
+        "FSMWrapper": {
+          "0.6.7+commit.b8d736ae.Darwin.appleclang": "FSMWrapper.sol/FSMWrapper.json"
+        }
+      }
+    },
+    "src/OSM.sol": {
+      "lastModificationDate": 1657763859319,
+      "contentHash": "40200eca68277c7794375fd36afc06e1",
+      "sourceName": "src/OSM.sol",
+      "solcConfig": {
+        "settings": {
+          "optimizer": {
+            "enabled": true,
+            "runs": 200
+          },
+          "metadata": {
+            "bytecodeHash": "ipfs"
+          },
+          "outputSelection": {
+            "*": {
+              "": [
+                "ast"
+              ],
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers"
+              ]
+            }
+          },
+          "evmVersion": "london",
+          "libraries": {}
+        }
+      },
+      "imports": [
+        "lib/geb-treasury-reimbursement/src/math/GebMath.sol",
+        "lib/geb-treasury-reimbursement/src/reimbursement/single/NoSetupNoAuthIncreasingTreasuryReimbursement.sol"
+      ],
+      "versionRequirement": "=0.6.7",
+      "artifacts": {
+        "DSValueLike": {
+          "0.6.7+commit.b8d736ae.Darwin.appleclang": "OSM.sol/DSValueLike.json"
+        },
+        "ExternallyFundedOSM": {
+          "0.6.7+commit.b8d736ae.Darwin.appleclang": "OSM.sol/ExternallyFundedOSM.json"
+        },
+        "FSMWrapperLike": {
+          "0.6.7+commit.b8d736ae.Darwin.appleclang": "OSM.sol/FSMWrapperLike.json"
+        },
+        "OSM": {
+          "0.6.7+commit.b8d736ae.Darwin.appleclang": "OSM.sol/OSM.json"
+        },
+        "SelfFundedOSM": {
+          "0.6.7+commit.b8d736ae.Darwin.appleclang": "OSM.sol/SelfFundedOSM.json"
+        }
+      }
+    },
+    "src/test/DSM.t.sol": {
+      "lastModificationDate": 1657763656691,
+      "contentHash": "94e4a65c7dcd5129c414feb79be4587a",
+      "sourceName": "src/test/DSM.t.sol",
+      "solcConfig": {
+        "settings": {
+          "optimizer": {
+            "enabled": true,
+            "runs": 200
+          },
+          "metadata": {
+            "bytecodeHash": "ipfs"
+          },
+          "outputSelection": {
+            "*": {
+              "": [
+                "ast"
+              ],
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers"
+              ]
+            }
+          },
+          "evmVersion": "london",
+          "libraries": {}
+        }
+      },
+      "imports": [
+        "lib/ds-stop/lib/ds-auth/src/auth.sol",
+        "lib/ds-stop/lib/ds-note/src/note.sol",
+        "lib/ds-stop/src/stop.sol",
+        "lib/ds-token/lib/ds-math/src/math.sol",
+        "lib/ds-token/lib/ds-test/src/test.sol",
+        "lib/ds-token/lib/erc20/src/erc20.sol",
+        "lib/ds-token/src/base.sol",
+        "lib/ds-token/src/token.sol",
+        "lib/ds-value/lib/ds-thing/src/thing.sol",
+        "lib/ds-value/src/value.sol",
+        "lib/geb-treasury-reimbursement/src/math/GebMath.sol",
+        "lib/geb-treasury-reimbursement/src/reimbursement/single/NoSetupIncreasingTreasuryReimbursement.sol",
+        "lib/geb-treasury-reimbursement/src/reimbursement/single/NoSetupNoAuthIncreasingTreasuryReimbursement.sol",
+        "src/DSM.sol",
+        "src/FSMWrapper.sol",
+        "src/test/mock/MockTreasury.sol"
+      ],
+      "versionRequirement": ">=0.6.7",
+      "artifacts": {
+        "ExternallyFundedDSMTest": {
+          "0.6.7+commit.b8d736ae.Darwin.appleclang": "DSM.t.sol/ExternallyFundedDSMTest.json"
+        },
+        "Hevm": {
+          "0.6.7+commit.b8d736ae.Darwin.appleclang": "DSM.t.sol/Hevm.json"
+        },
+        "SelfFundedDSMTest": {
+          "0.6.7+commit.b8d736ae.Darwin.appleclang": "DSM.t.sol/SelfFundedDSMTest.json"
+        }
+      }
+    },
+    "src/test/FSMWrapper.t.sol": {
+      "lastModificationDate": 1657763656691,
+      "contentHash": "65e29a41d14645d619c4837e19d17785",
+      "sourceName": "src/test/FSMWrapper.t.sol",
+      "solcConfig": {
+        "settings": {
+          "optimizer": {
+            "enabled": true,
+            "runs": 200
+          },
+          "metadata": {
+            "bytecodeHash": "ipfs"
+          },
+          "outputSelection": {
+            "*": {
+              "": [
+                "ast"
+              ],
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers"
+              ]
+            }
+          },
+          "evmVersion": "london",
+          "libraries": {}
+        }
+      },
+      "imports": [
+        "lib/ds-stop/lib/ds-auth/src/auth.sol",
+        "lib/ds-stop/lib/ds-note/src/note.sol",
+        "lib/ds-stop/src/stop.sol",
+        "lib/ds-token/lib/ds-math/src/math.sol",
+        "lib/ds-token/lib/ds-test/src/test.sol",
+        "lib/ds-token/lib/erc20/src/erc20.sol",
+        "lib/ds-token/src/base.sol",
+        "lib/ds-token/src/token.sol",
+        "lib/ds-value/lib/ds-thing/src/thing.sol",
+        "lib/ds-value/src/value.sol",
+        "lib/geb-treasury-reimbursement/src/math/GebMath.sol",
+        "lib/geb-treasury-reimbursement/src/reimbursement/single/NoSetupIncreasingTreasuryReimbursement.sol",
+        "lib/geb-treasury-reimbursement/src/reimbursement/single/NoSetupNoAuthIncreasingTreasuryReimbursement.sol",
+        "src/DSM.sol",
+        "src/FSMWrapper.sol",
+        "src/OSM.sol",
+        "src/test/mock/MockTreasury.sol"
+      ],
+      "versionRequirement": "=0.6.7",
+      "artifacts": {
+        "FSMWrapperTest": {
+          "0.6.7+commit.b8d736ae.Darwin.appleclang": "FSMWrapper.t.sol/FSMWrapperTest.json"
+        },
+        "Hevm": {
+          "0.6.7+commit.b8d736ae.Darwin.appleclang": "FSMWrapper.t.sol/Hevm.json"
+        }
+      }
+    },
+    "src/test/OSM.t.sol": {
+      "lastModificationDate": 1657763656691,
+      "contentHash": "8f22d11dc055bb764cedd1f4288ce451",
+      "sourceName": "src/test/OSM.t.sol",
+      "solcConfig": {
+        "settings": {
+          "optimizer": {
+            "enabled": true,
+            "runs": 200
+          },
+          "metadata": {
+            "bytecodeHash": "ipfs"
+          },
+          "outputSelection": {
+            "*": {
+              "": [
+                "ast"
+              ],
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers"
+              ]
+            }
+          },
+          "evmVersion": "london",
+          "libraries": {}
+        }
+      },
+      "imports": [
+        "lib/ds-stop/lib/ds-auth/src/auth.sol",
+        "lib/ds-stop/lib/ds-note/src/note.sol",
+        "lib/ds-stop/src/stop.sol",
+        "lib/ds-token/lib/ds-math/src/math.sol",
+        "lib/ds-token/lib/ds-test/src/test.sol",
+        "lib/ds-token/lib/erc20/src/erc20.sol",
+        "lib/ds-token/src/base.sol",
+        "lib/ds-token/src/token.sol",
+        "lib/ds-value/lib/ds-thing/src/thing.sol",
+        "lib/ds-value/src/value.sol",
+        "lib/geb-treasury-reimbursement/src/math/GebMath.sol",
+        "lib/geb-treasury-reimbursement/src/reimbursement/single/NoSetupIncreasingTreasuryReimbursement.sol",
+        "lib/geb-treasury-reimbursement/src/reimbursement/single/NoSetupNoAuthIncreasingTreasuryReimbursement.sol",
+        "src/FSMWrapper.sol",
+        "src/OSM.sol",
+        "src/test/mock/MockTreasury.sol"
+      ],
+      "versionRequirement": ">=0.6.7",
+      "artifacts": {
+        "ExternallyFundedOSMTest": {
+          "0.6.7+commit.b8d736ae.Darwin.appleclang": "OSM.t.sol/ExternallyFundedOSMTest.json"
+        },
+        "Hevm": {
+          "0.6.7+commit.b8d736ae.Darwin.appleclang": "OSM.t.sol/Hevm.json"
+        },
+        "SelfFundedOSMTest": {
+          "0.6.7+commit.b8d736ae.Darwin.appleclang": "OSM.t.sol/SelfFundedOSMTest.json"
+        }
+      }
+    },
+    "src/test/mock/MockTreasury.sol": {
+      "lastModificationDate": 1657763656691,
+      "contentHash": "e221137bb5ac58c6f204cdbb9f5ae421",
+      "sourceName": "src/test/mock/MockTreasury.sol",
+      "solcConfig": {
+        "settings": {
+          "optimizer": {
+            "enabled": true,
+            "runs": 200
+          },
+          "metadata": {
+            "bytecodeHash": "ipfs"
+          },
+          "outputSelection": {
+            "*": {
+              "": [
+                "ast"
+              ],
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers"
+              ]
+            }
+          },
+          "evmVersion": "london",
+          "libraries": {}
+        }
+      },
+      "imports": [],
+      "versionRequirement": "=0.6.7",
+      "artifacts": {
+        "MockRevertableTreasury": {
+          "0.6.7+commit.b8d736ae.Darwin.appleclang": "MockTreasury.sol/MockRevertableTreasury.json"
+        },
+        "MockTreasury": {
+          "0.6.7+commit.b8d736ae.Darwin.appleclang": "MockTreasury.sol/MockTreasury.json"
+        },
+        "SystemCoinLike": {
+          "0.6.7+commit.b8d736ae.Darwin.appleclang": "MockTreasury.sol/SystemCoinLike.json"
+        }
+      }
+    }
+  }
+}
